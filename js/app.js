@@ -241,11 +241,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             navigateTo('login');
         }
+
+        // Initialize Theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
     } catch (error) {
         console.error('Initialization error:', error);
         showAlert('Failed to initialize app: ' + error.message, 'danger');
     }
 });
+
+// Theme Toggle Function
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    updateThemeIcon(newTheme);
+    showAlert(`Switched to ${newTheme} mode`, 'success');
+}
+
+function updateThemeIcon(theme) {
+    const themeBtnIcon = document.querySelector('#themeBtn i');
+    if (themeBtnIcon) {
+        if (theme === 'dark') {
+            themeBtnIcon.className = 'ph ph-sun';
+        } else {
+            themeBtnIcon.className = 'ph ph-moon';
+        }
+    }
+}
 
 // Expose global functions
 window.AppState = AppState;
@@ -258,3 +287,4 @@ window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
+window.toggleTheme = toggleTheme;

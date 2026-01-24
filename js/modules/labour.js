@@ -25,9 +25,9 @@ async function loadLabourView() {
     return `
         <div class="labour-container">
             <div class="card-header">
-                <h2 class="card-title">👷 Labour Management</h2>
+                <h2 class="card-title"><i class="ph ph-hard-hat"></i> Labour Management</h2>
                 <button class="btn btn-primary" onclick="showAddWorkerModal()">
-                    + Add Worker
+                    <i class="ph ph-plus"></i> Add Worker
                 </button>
             </div>
             
@@ -61,7 +61,7 @@ async function loadLabourView() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="workerModalTitle">Add Worker</h3>
-                    <button class="modal-close" onclick="hideModal('workerModal')">&times;</button>
+                    <button class="modal-close" onclick="hideModal('workerModal')"><i class="ph ph-x"></i></button>
                 </div>
                 <form id="workerForm" onsubmit="event.preventDefault(); handleSaveWorker();">
                     <input type="hidden" id="workerId" />
@@ -130,8 +130,8 @@ async function loadLabourView() {
         <div id="costCalculatorModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">💰 Cost Calculator</h3>
-                    <button class="modal-close" onclick="hideModal('costCalculatorModal')">&times;</button>
+                    <h3 class="modal-title"><i class="ph ph-calculator"></i> Cost Calculator</h3>
+                    <button class="modal-close" onclick="hideModal('costCalculatorModal')"><i class="ph ph-x"></i></button>
                 </div>
                 <div id="calculatorContent">
                     ${renderCostCalculator()}
@@ -200,15 +200,18 @@ function renderWorkersList() {
 }
 
 function renderCategoryCostSummary() {
-    return workerCategories.map(category => {
+    return workerCategories.map((category, index) => {
         const categoryWorkers = allWorkers.filter(w => w.category === category);
         const totalWorkers = categoryWorkers.length;
         const totalCost = categoryWorkers.reduce((sum, w) =>
             sum + ((w.dailyWage || 0) * (w.daysWorked || 0)), 0
         );
 
+        // Cycle through gradient classes 1-4
+        const gradientClass = `card-gradient-${(index % 4) + 1}`;
+
         return `
-            <div class="stat-card">
+            <div class="stat-card ${gradientClass}">
                 <div class="stat-label">${category}s</div>
                 <div class="stat-value">${totalWorkers}</div>
                 <div class="stat-label">Total Cost: ${formatCurrency(totalCost)}</div>

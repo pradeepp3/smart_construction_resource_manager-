@@ -8,7 +8,7 @@ async function loadSettingsView() {
         <div class="settings-container">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title">⚙️ Settings</h2>
+                    <h2 class="card-title"><i class="ph ph-gear"></i> Settings</h2>
                 </div>
                 <div class="card-body">
                     <h3 style="margin-bottom: 1rem;">Database Configuration</h3>
@@ -42,7 +42,7 @@ async function loadSettingsView() {
                     
                     <div style="margin-top: 2rem;">
                         <button class="btn btn-danger" onclick="clearAllData()">
-                            🗑️ Clear All Data (Dangerous!)
+                            <i class="ph ph-trash"></i> Clear All Data (Dangerous!)
                         </button>
                     </div>
                 </div>

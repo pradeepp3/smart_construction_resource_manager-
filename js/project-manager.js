@@ -14,9 +14,9 @@ async function loadProjectsView() {
     return `
         <div class="projects-container">
             <div class="card-header">
-                <h2 class="card-title">📋 Project Management</h2>
+                <h2 class="card-title"><i class="ph ph-clipboard-text"></i> Project Management</h2>
                 <button class="btn btn-primary" onclick="showAddProjectModal()">
-                    + Add New Project
+                    <i class="ph ph-plus"></i> Add New Project
                 </button>
             </div>
             
@@ -30,7 +30,7 @@ async function loadProjectsView() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title">Add New Project</h3>
-                    <button class="modal-close" onclick="hideModal('addProjectModal')">&times;</button>
+                    <button class="modal-close" onclick="hideModal('addProjectModal')"><i class="ph ph-x"></i></button>
                 </div>
                 <form id="addProjectForm" onsubmit="event.preventDefault(); handleAddProject();">
                     <div class="form-group">
@@ -71,7 +71,7 @@ function renderProjectCards() {
     if (allProjects.length === 0) {
         return `
             <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                <h3 style="color: var(--text-muted);">No projects yet</h3>
+                <h3 style="color: var(--text-muted);"><i class="ph ph-folder-dashed" style="font-size: 2rem; margin-bottom: 1rem;"></i><br>No projects yet</h3>
                 <p style="color: var(--text-muted);">Click "Add New Project" to get started</p>
             </div>
         `;
@@ -86,9 +86,9 @@ function renderProjectCards() {
             : ''}
             </div>
             <div class="card-body">
-                <p><strong>📍 Location:</strong> ${escapeHtml(project.location)}</p>
-                <p><strong>💰 Budget:</strong> ${formatCurrency(project.budget)}</p>
-                <p><strong>📅 Start Date:</strong> ${formatDate(project.startDate)}</p>
+                <p><strong><i class="ph ph-map-pin"></i> Location:</strong> ${escapeHtml(project.location)}</p>
+                <p><strong><i class="ph ph-currency-inr"></i> Budget:</strong> ${formatCurrency(project.budget)}</p>
+                <p><strong><i class="ph ph-calendar-blank"></i> Start Date:</strong> ${formatDate(project.startDate)}</p>
                 ${project.description ? `<p style="margin-top: 0.5rem; color: var(--text-muted);">${escapeHtml(project.description)}</p>` : ''}
             </div>
         </div>

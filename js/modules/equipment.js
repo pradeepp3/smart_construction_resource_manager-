@@ -29,27 +29,27 @@ async function loadEquipmentView() {
     return `
         <div class="equipment-container">
             <div class="card-header">
-                <h2 class="card-title">🔧 Equipment Management</h2>
+                <h2 class="card-title"><i class="ph ph-wrench"></i> Equipment Management</h2>
                 <button class="btn btn-primary" onclick="showAddEquipmentModal()">
-                    + Add Equipment
+                    <i class="ph ph-plus"></i> Add Equipment
                 </button>
             </div>
             
             <!-- Summary Cards -->
             <div class="grid grid-4 mt-2">
-                <div class="stat-card">
+                <div class="stat-card card-gradient-1">
                     <div class="stat-label">Total Equipment</div>
                     <div class="stat-value">${allEquipment.length}</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%);">
+                <div class="stat-card card-gradient-2">
                     <div class="stat-label">Available</div>
                     <div class="stat-value">${availableCount}</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);">
+                <div class="stat-card card-gradient-3">
                     <div class="stat-label">In Use</div>
                     <div class="stat-value">${inUseCount}</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, var(--info) 0%, #0e7490 100%);">
+                <div class="stat-card card-gradient-4">
                     <div class="stat-label">Total Cost</div>
                     <div class="stat-value">${formatCurrency(totalCost)}</div>
                 </div>
@@ -68,7 +68,7 @@ async function loadEquipmentView() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="equipmentModalTitle">Add Equipment</h3>
-                    <button class="modal-close" onclick="hideModal('equipmentModal')">&times;</button>
+                    <button class="modal-close" onclick="hideModal('equipmentModal')"><i class="ph ph-x"></i></button>
                 </div>
                 <form id="equipmentForm" onsubmit="event.preventDefault(); handleSaveEquipment();">
                     <input type="hidden" id="equipmentId" />

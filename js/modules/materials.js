@@ -27,27 +27,27 @@ async function loadMaterialsView() {
     return `
         <div class="materials-container">
             <div class="card-header">
-                <h2 class="card-title">🧱 Materials Management</h2>
+                <h2 class="card-title"><i class="ph ph-bricks"></i> Materials Management</h2>
                 <button class="btn btn-primary" onclick="showAddMaterialModal()">
-                    + Add Material
+                    <i class="ph ph-plus"></i> Add Material
                 </button>
             </div>
             
             <!-- Summary Cards -->
             <div class="grid grid-4 mt-2">
-                <div class="stat-card">
+                <div class="stat-card card-gradient-1">
                     <div class="stat-label">Total Materials</div>
                     <div class="stat-value">${allMaterials.length}</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);">
+                <div class="stat-card card-gradient-2">
                     <div class="stat-label">Total Quantity</div>
                     <div class="stat-value">${totalQuantity.toLocaleString()}</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%);">
+                <div class="stat-card card-gradient-3">
                     <div class="stat-label">Total Cost</div>
                     <div class="stat-value">${formatCurrency(totalCost)}</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, var(--info) 0%, #0e7490 100%);">
+                <div class="stat-card card-gradient-4">
                     <div class="stat-label">Categories</div>
                     <div class="stat-value">${new Set(allMaterials.map(m => m.category)).size}</div>
                 </div>
@@ -66,7 +66,7 @@ async function loadMaterialsView() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="materialModalTitle">Add Material</h3>
-                    <button class="modal-close" onclick="hideModal('materialModal')">&times;</button>
+                    <button class="modal-close" onclick="hideModal('materialModal')"><i class="ph ph-x"></i></button>
                 </div>
                 <form id="materialForm" onsubmit="event.preventDefault(); handleSaveMaterial();">
                     <input type="hidden" id="materialId" />

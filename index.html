@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Construction Operations Manager</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -14,19 +20,21 @@
         <!-- Navigation Bar (Hidden on login) -->
         <nav id="navbar" class="navbar" style="display: none;">
             <div class="nav-brand">
-                <h1>🏗️ Construction Manager</h1>
+                <h1><i class="ph-fill ph-buildings"></i> Construction Manager</h1>
             </div>
             <div class="nav-project-info">
+                <i class="ph ph-folder-open"></i>
                 <span id="currentProjectName">No Project Selected</span>
             </div>
             <div class="nav-menu">
-                <button class="nav-btn" data-view="projects">Projects</button>
-                <button class="nav-btn" data-view="labour">Labour</button>
-                <button class="nav-btn" data-view="materials">Materials</button>
-                <button class="nav-btn" data-view="equipment">Equipment</button>
-                <button class="nav-btn" data-view="finance">Finance</button>
-                <button class="nav-btn" data-view="settings">Settings</button>
-                <button class="nav-btn logout-btn" id="logoutBtn">Logout</button>
+                <button class="nav-btn" data-view="projects"><i class="ph ph-squares-four"></i> Projects</button>
+                <button class="nav-btn" data-view="labour"><i class="ph ph-users-three"></i> Labour</button>
+                <button class="nav-btn" data-view="materials"><i class="ph ph-package"></i> Materials</button>
+                <button class="nav-btn" data-view="equipment"><i class="ph ph-truck"></i> Equipment</button>
+                <button class="nav-btn" data-view="finance"><i class="ph ph-currency-dollar"></i> Finance</button>
+                <button class="nav-btn" data-view="settings"><i class="ph ph-gear"></i> Settings</button>
+                <button class="nav-btn" id="themeBtn" onclick="toggleTheme()"><i class="ph ph-sun"></i></button>
+                <button class="nav-btn logout-btn" id="logoutBtn"><i class="ph ph-sign-out"></i> Logout</button>
             </div>
         </nav>
 
