@@ -803,6 +803,110 @@ tr:hover td {
     color: #22d3ee;
 }
 
+/* Calculator Styles */
+.calculator-modal {
+    max-width: 360px !important;
+}
+
+.calc-display {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 2rem;
+    padding: 1rem;
+    text-align: right;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    font-family: 'Courier New', monospace;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.calc-history {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+    min-height: 1.2em;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.calc-btn {
+    padding: 1rem;
+    font-size: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.calc-btn:hover {
+    background: var(--border);
+    border-color: var(--text-muted);
+}
+
+.calc-btn.operator {
+    color: var(--primary-light);
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.calc-btn.operator:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.calc-btn.equals {
+    grid-column: span 2;
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.calc-btn.equals:hover {
+    background: var(--primary-dark);
+}
+
+.calc-btn.clear {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.calc-btn.clear:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Edit Budget Styles */
+.budget-edit-grid {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-hover);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+}
+
+.budget-row-inputs {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+@media (max-width: 600px) {
+    .budget-row-inputs {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Utility Classes */
 .text-center {
     text-align: center;
@@ -840,6 +944,14 @@ tr:hover td {
 
 .gap {
     gap: 1rem;
+}
+
+.gap-sm {
+    gap: 0.5rem;
+}
+
+.gap-md {
+    gap: 1.5rem;
 }
 
 .w-full {
