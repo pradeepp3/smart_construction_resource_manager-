@@ -46,8 +46,34 @@ async function loadProjectsView() {
                         <textarea id="projectDescription" class="form-textarea"></textarea>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Budget (₹)</label>
-                        <input type="number" id="projectBudget" class="form-input" step="0.01" required />
+                        <label class="form-label">Total Budget (₹)</label>
+                        <input type="number" id="projectBudget" class="form-input" step="0.01" required onchange="updateRemainingBudget()" />
+                    </div>
+                    
+                    <div style="background: var(--bg-hover); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 0.95rem;">Budget Breakdown</h4>
+                        <div class="grid grid-2 gap" style="gap: 1rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" style="font-size: 0.8rem;">Labour Budget</label>
+                                <input type="number" id="budgetLabour" class="form-input" step="0.01" value="0" onchange="updateRemainingBudget()" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" style="font-size: 0.8rem;">Materials Budget</label>
+                                <input type="number" id="budgetMaterials" class="form-input" step="0.01" value="0" onchange="updateRemainingBudget()" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" style="font-size: 0.8rem;">Equipment Budget</label>
+                                <input type="number" id="budgetEquipment" class="form-input" step="0.01" value="0" onchange="updateRemainingBudget()" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" style="font-size: 0.8rem;">Other Expenses</label>
+                                <input type="number" id="budgetOther" class="form-input" step="0.01" value="0" onchange="updateRemainingBudget()" />
+                            </div>
+                        </div>
+                        <div id="budgetValidation" style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                            <span>Remaining to allocate: <span id="remainingBudgetDisplay">₹0.00</span></span>
+                            <span id="allocationStatus"></span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Start Date</label>
@@ -108,6 +134,11 @@ async function handleAddProject() {
         const name = document.getElementById('projectName').value.trim();
         const location = document.getElementById('projectLocation').value.trim();
         const budget = parseFloat(document.getElementById('projectBudget').value);
+        const budgetLabour = parseFloat(document.getElementById('budgetLabour').value) || 0;
+        const budgetMaterials = parseFloat(document.getElementById('budgetMaterials').value) || 0;
+        const budgetEquipment = parseFloat(document.getElementById('budgetEquipment').value) || 0;
+        const budgetOther = parseFloat(document.getElementById('budgetOther').value) || 0;
+
         const startDate = document.getElementById('projectStartDate').value;
 
         // Validation
@@ -124,9 +155,16 @@ async function handleAddProject() {
         }
 
         if (isNaN(budget) || budget <= 0) {
-            showAlert('Please enter a valid budget amount', 'warning');
+            showAlert('Please enter a valid total budget amount', 'warning');
             document.getElementById('projectBudget').focus();
             return;
+        }
+
+        const totalAllocated = budgetLabour + budgetMaterials + budgetEquipment + budgetOther;
+        if (Math.abs(budget - totalAllocated) > 1) { // Allow 1 rupee floating point difference
+            if (!confirm(`Total allocated budget (${formatCurrency(totalAllocated)}) does not match Total Budget (${formatCurrency(budget)}). Do you want to proceed anyway?`)) {
+                return;
+            }
         }
 
         if (!startDate) {
@@ -140,6 +178,12 @@ async function handleAddProject() {
             location: location,
             description: document.getElementById('projectDescription').value.trim(),
             budget: budget,
+            budgetBreakdown: {
+                labour: budgetLabour,
+                materials: budgetMaterials,
+                equipment: budgetEquipment,
+                other: budgetOther
+            },
             startDate: startDate,
             createdAt: new Date()
         };
@@ -182,6 +226,35 @@ async function selectProject(projectId) {
     }
 }
 
+function updateRemainingBudget() {
+    const total = parseFloat(document.getElementById('projectBudget').value) || 0;
+    const l = parseFloat(document.getElementById('budgetLabour').value) || 0;
+    const m = parseFloat(document.getElementById('budgetMaterials').value) || 0;
+    const e = parseFloat(document.getElementById('budgetEquipment').value) || 0;
+    const o = parseFloat(document.getElementById('budgetOther').value) || 0;
+
+    const allocated = l + m + e + o;
+    const remaining = total - allocated;
+
+    const display = document.getElementById('remainingBudgetDisplay');
+    const status = document.getElementById('allocationStatus');
+
+    if (display) display.textContent = formatCurrency(remaining);
+
+    if (status) {
+        if (remaining === 0) {
+            status.textContent = '✓ Fully Allocated';
+            status.style.color = 'var(--success)';
+        } else if (remaining > 0) {
+            status.textContent = 'Unallocated';
+            status.style.color = 'var(--warning)';
+        } else {
+            status.textContent = '⚠ Over Budget';
+            status.style.color = 'var(--danger)';
+        }
+    }
+}
+
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -194,4 +267,5 @@ window.initializeProjects = initializeProjects;
 window.showAddProjectModal = showAddProjectModal;
 window.handleAddProject = handleAddProject;
 window.selectProject = selectProject;
+window.updateRemainingBudget = updateRemainingBudget;
 window.escapeHtml = escapeHtml;

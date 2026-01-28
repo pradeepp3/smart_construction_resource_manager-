@@ -117,32 +117,44 @@ async function loadFinanceView() {
 }
 
 function renderCostBreakdownChart(summary) {
-    const categories = [
-        { name: 'Labour', amount: summary.labourCost, color: 'var(--data-4)' },
-        { name: 'Materials', amount: summary.materialCost, color: 'var(--data-5)' },
-        { name: 'Equipment', amount: summary.equipmentCost, color: 'var(--data-3)' },
-        { name: 'Other', amount: summary.otherExpenses, color: 'var(--data-6)' }
-    ];
+    // Get planned budgets from the current project, default to 0 if not set or legacy project
+    const breakdown = AppState.currentProject.budgetBreakdown || {};
+    const budgets = {
+        labour: breakdown.labour || 0,
+        materials: breakdown.materials || 0,
+        equipment: breakdown.equipment || 0,
+        other: breakdown.other || 0
+    };
 
-    // Calculate percentage based on Total Cost, not max amount
-    const totalCost = summary.totalCost || 1; // Avoid division by zero
+    const categories = [
+        { name: 'Labour', amount: summary.labourCost, budget: budgets.labour, color: 'var(--data-4)' },
+        { name: 'Materials', amount: summary.materialCost, budget: budgets.materials, color: 'var(--data-5)' },
+        { name: 'Equipment', amount: summary.equipmentCost, budget: budgets.equipment, color: 'var(--data-3)' },
+        { name: 'Other', amount: summary.otherExpenses, budget: budgets.other, color: 'var(--data-6)' }
+    ];
 
     return `
         <div style="display: grid; gap: 1rem;">
             ${categories.map(cat => {
-        const percentageOfTotal = totalCost > 0 ? (cat.amount / totalCost * 100) : 0;
+        // Percentage of the CATEGORY BUDGET used
+        const percentageUsed = cat.budget > 0 ? (cat.amount / cat.budget * 100) : 0;
+        // Cap visual bar at 100% but show real text
+        const visualWidth = Math.min(percentageUsed, 100);
+
         return `
                     <div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
                             <span style="font-weight: 500; color: var(--text-secondary);">${cat.name}</span>
                             <div style="text-align: right;">
                                 <span style="color: ${cat.color}; font-weight: 600; margin-right: 0.5rem;">${formatCurrency(cat.amount)}</span>
-                                <span style="font-size: 0.8rem; color: var(--text-muted);">(${percentageOfTotal.toFixed(1)}%)</span>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">
+                                    ${cat.budget > 0 ? `/ ${formatCurrency(cat.budget)} (${percentageUsed.toFixed(1)}%)` : '(No Budget Set)'}
+                                </span>
                             </div>
                         </div>
-                        <div style="height: 12px; background: var(--bg-hover); border-radius: 6px; overflow: hidden;">
-                            <div style="height: 100%; background: ${cat.color}; width: ${percentageOfTotal}%; 
-                                        transition: width 0.5s;"></div>
+                        <div style="height: 12px; background: var(--bg-hover); border-radius: 6px; overflow: hidden; position: relative;">
+                            <div style="height: 100%; background: ${percentageUsed > 100 ? 'var(--danger)' : cat.color}; 
+                                        width: ${visualWidth}%; transition: width 0.5s;"></div>
                         </div>
                     </div>
                 `;
@@ -152,53 +164,63 @@ function renderCostBreakdownChart(summary) {
 }
 
 function renderFinancialSummaryTable(summary, budget) {
+    // Get planned budgets
+    const breakdown = AppState.currentProject.budgetBreakdown || {};
+    const budgets = {
+        labour: breakdown.labour || 0,
+        materials: breakdown.materials || 0,
+        equipment: breakdown.equipment || 0,
+        other: breakdown.other || 0
+    };
+
+    const categories = [
+        { name: 'Labour Cost', amount: summary.labourCost, budget: budgets.labour },
+        { name: 'Material Cost', amount: summary.materialCost, budget: budgets.materials },
+        { name: 'Equipment Cost', amount: summary.equipmentCost, budget: budgets.equipment },
+        { name: 'Other Expenses', amount: summary.otherExpenses, budget: budgets.other }
+    ];
+
+    const rows = categories.map(cat => {
+        const percentage = cat.budget > 0 ? (cat.amount / cat.budget * 100) : 0;
+        const statusColor = cat.budget > 0 && percentage > 100 ? 'var(--danger)' : 'inherit';
+
+        return `
+            <tr>
+                <td><strong>${cat.name}</strong></td>
+                <td>${formatCurrency(cat.amount)}</td>
+                <td>${cat.budget > 0 ? formatCurrency(cat.budget) : '-'}</td>
+                <td style="color: ${statusColor}">
+                    ${cat.budget > 0 ? `<strong>${percentage.toFixed(2)}%</strong> of budget` : '-'}
+                </td>
+            </tr>
+        `;
+    }).join('');
+
     return `
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th>Category</th>
-                        <th>Amount</th>
-                        <th>Percentage of Total</th>
+                        <th>Actual Spend</th>
+                        <th>Planned Budget</th>
+                        <th>Utilization</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>Labour Cost</strong></td>
-                        <td>${formatCurrency(summary.labourCost)}</td>
-                        <td>${((summary.labourCost / summary.totalCost * 100) || 0).toFixed(2)}%</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Material Cost</strong></td>
-                        <td>${formatCurrency(summary.materialCost)}</td>
-                        <td>${((summary.materialCost / summary.totalCost * 100) || 0).toFixed(2)}%</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Equipment Cost</strong></td>
-                        <td>${formatCurrency(summary.equipmentCost)}</td>
-                        <td>${((summary.equipmentCost / summary.totalCost * 100) || 0).toFixed(2)}%</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Other Expenses</strong></td>
-                        <td>${formatCurrency(summary.otherExpenses)}</td>
-                        <td>${((summary.otherExpenses / summary.totalCost * 100) || 0).toFixed(2)}%</td>
-                    </tr>
+                    ${rows}
                     <tr style="background: var(--bg-hover); font-weight: 600;">
-                        <td><strong>Total Cost</strong></td>
+                        <td><strong>Total Project</strong></td>
                         <td><strong>${formatCurrency(summary.totalCost)}</strong></td>
-                        <td><strong>100%</strong></td>
-                    </tr>
-                    <tr style="background: var(--bg-hover);">
-                        <td><strong>Project Budget</strong></td>
                         <td><strong>${formatCurrency(budget)}</strong></td>
-                        <td>-</td>
+                        <td><strong>${budget > 0 ? ((summary.totalCost / budget * 100).toFixed(2)) + '%' : '0.00%'}</strong></td>
                     </tr>
-                    <tr style="background: var(--bg-hover); font-weight: 600;">
-                        <td><strong>Remaining Budget</strong></td>
-                        <td style="color: ${budget - summary.totalCost >= 0 ? 'var(--success)' : 'var(--danger)'};">
+                    <tr style="background: var(--bg-card);">
+                        <td><strong>Remaining</strong></td>
+                        <td colspan="3" style="color: ${budget - summary.totalCost >= 0 ? 'var(--success)' : 'var(--danger)'};">
                             <strong>${formatCurrency(budget - summary.totalCost)}</strong>
+                            ${budget - summary.totalCost < 0 ? ' (Over Budget)' : ' Available'}
                         </td>
-                        <td><strong>${((summary.totalCost / budget * 100) || 0).toFixed(2)}% utilized</strong></td>
                     </tr>
                 </tbody>
             </table>
