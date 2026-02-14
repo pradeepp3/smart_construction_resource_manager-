@@ -39,7 +39,8 @@ function loadLoginView() {
             <div class="card" style="width: 450px; max-width: 90%;">
                 <div class="card-header">
                     <h2 class="card-title" style="text-align: center; width: 100%;">
-                        🏗️ Construction Manager
+                        <i class="ph ph-buildings" style="font-size: 2rem; color: var(--primary); margin-right: 0.5rem;"></i>
+                        Construction Manager
                     </h2>
                 </div>
                 <div class="card-body">

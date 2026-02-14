@@ -8,39 +8,39 @@
 }
 
 :root {
-    /* Color Palette - Modern Enterprise Dark Theme */
-    /* Primary Brand - Sophisticated Blue */
-    --primary: #3b82f6;
-    /* Blue 500 */
-    --primary-dark: #1d4ed8;
-    /* Blue 700 */
-    --primary-light: #60a5fa;
-    /* Blue 400 */
-    --primary-soft: rgba(59, 130, 246, 0.15);
+    /* Color Palette - Construction Industrial Theme */
+    /* Primary Brand - Safety Amber */
+    --primary: #f59e0b;
+    /* Amber 500 */
+    --primary-dark: #d97706;
+    /* Amber 600 */
+    --primary-light: #fbbf24;
+    /* Amber 400 */
+    --primary-soft: rgba(245, 158, 11, 0.15);
 
-    /* Data Visualization Colors - Distinct & Professional */
-    --data-1: #3b82f6;
-    /* Blue */
-    --data-2: #10b981;
-    /* Emerald */
-    --data-3: #f59e0b;
+    /* Data Visualization Colors - Earthy & Industrial */
+    --data-1: #f59e0b;
     /* Amber */
+    --data-2: #10b981;
+    /* Emerald (Success) */
+    --data-3: #ef4444;
+    /* Red (Danger) */
     --data-4: #8b5cf6;
     /* Violet */
-    --data-5: #ec4899;
-    /* Pink */
-    --data-6: #06b6d4;
+    --data-5: #06b6d4;
     /* Cyan */
+    --data-6: #64748b;
+    /* Slate */
 
     /* Semantic Colors */
-    --secondary: #6366f1;
-    /* Indigo 500 */
+    --secondary: #71717a;
+    /* Zinc 500 */
     --success: #10b981;
-    /* Emerald 500 - Clear success indicator */
+    /* Emerald 500 */
     --warning: #f59e0b;
-    /* Amber 500 - Clear warning */
+    /* Amber 500 */
     --danger: #ef4444;
-    /* Red 500 - Clear danger */
+    /* Red 500 */
     --info: #06b6d4;
     /* Cyan 500 */
 
@@ -49,37 +49,37 @@
     --danger-soft: rgba(239, 68, 68, 0.1);
     --info-soft: rgba(6, 182, 212, 0.1);
 
-    /* Backgrounds - Slate Steps */
-    --bg-app: #0f172a;
-    /* Slate 900 - Darkest background */
-    --bg-main: #0f172a;
-    /* Slate 900 */
-    --bg-card: #1e293b;
-    /* Slate 800 - Component background */
-    --bg-hover: #334155;
-    /* Slate 700 - Hover state */
-    --bg-input: #1e293b;
-    /* Input background */
-    --bg-overlay: rgba(15, 23, 42, 0.85);
-    /* Richer overlay */
+    /* Backgrounds - Neutral Zinc (No Blue Tint) */
+    --bg-app: #18181b;
+    /* Zinc 900 */
+    --bg-main: #18181b;
+    /* Zinc 900 */
+    --bg-card: #27272a;
+    /* Zinc 800 */
+    --bg-hover: #3f3f46;
+    /* Zinc 700 */
+    --bg-input: #27272a;
+    /* Zinc 800 */
+    --bg-overlay: rgba(24, 24, 27, 0.9);
+    /* Zinc Overlay */
 
-    /* Typography */
-    --text-primary: #f8fafc;
-    /* Slate 50 */
-    --text-secondary: #cbd5e1;
-    /* Slate 300 */
-    --text-muted: #94a3b8;
-    /* Slate 400 */
-    --text-disabled: #64748b;
-    /* Slate 500 */
+    /* Typography - Neutral */
+    --text-primary: #f4f4f5;
+    /* Zinc 100 */
+    --text-secondary: #a1a1aa;
+    /* Zinc 400 */
+    --text-muted: #71717a;
+    /* Zinc 500 */
+    --text-disabled: #52525b;
+    /* Zinc 600 */
 
-    /* Borders */
-    --border: #334155;
-    /* Slate 700 */
-    --border-light: #475569;
-    /* Slate 600 */
-    --border-focus: #3b82f6;
-    /* Primary Blue */
+    /* Borders - Neutral */
+    --border: #3f3f46;
+    /* Zinc 700 */
+    --border-light: #52525b;
+    /* Zinc 600 */
+    --border-focus: #f59e0b;
+    /* Amber 500 */
 
     /* Spacing */
     --spacing-xs: 0.25rem;
@@ -98,11 +98,11 @@
     /* 12px */
     --radius-full: 9999px;
 
-    /* Shadows - Colored & Subtle */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-    --shadow-accent: 0 0 20px rgba(59, 130, 246, 0.2);
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-accent: 0 0 20px rgba(245, 158, 11, 0.15);
 
     /* Transitions */
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -113,42 +113,43 @@
 
 /* Light Theme Overrides */
 [data-theme="light"] {
-    /* Color Palette - Adjustments for Light Mode */
-    --primary: #2563eb;
-    /* Blue 600 */
-    --primary-dark: #1e40af;
-    /* Blue 800 */
-    --primary-light: #3b82f6;
-    /* Blue 500 */
-    --primary-soft: rgba(37, 99, 235, 0.1);
+    /* Color Palette - Light Mode Construction */
+    --primary: #d97706;
+    /* Amber 600 */
+    --primary-dark: #b45309;
+    /* Amber 700 */
+    --primary-light: #f59e0b;
+    /* Amber 500 */
+    --primary-soft: rgba(217, 119, 6, 0.1);
 
-    /* Backgrounds - Light */
-    --bg-app: #f1f5f9;
-    /* Slate 100 */
-    --bg-main: #f1f5f9;
-    /* Slate 100 */
+    /* Backgrounds - Neutral */
+    --bg-app: #f4f4f5;
+    /* Zinc 100 */
+    --bg-main: #f4f4f5;
+    /* Zinc 100 */
     --bg-card: #ffffff;
     /* White */
-    --bg-hover: #e2e8f0;
-    /* Slate 200 */
+    --bg-hover: #e4e4e7;
+    /* Zinc 200 */
     --bg-input: #ffffff;
-    --bg-overlay: rgba(255, 255, 255, 0.75);
+    --bg-overlay: rgba(255, 255, 255, 0.85);
 
-    /* Typography - Light */
-    --text-primary: #0f172a;
-    /* Slate 900 */
-    --text-secondary: #334155;
-    /* Slate 700 */
-    --text-muted: #64748b;
-    /* Slate 500 */
-    --text-disabled: #94a3b8;
-    /* Slate 400 */
+    /* Typography - Neutral */
+    --text-primary: #18181b;
+    /* Zinc 900 */
+    --text-secondary: #52525b;
+    /* Zinc 600 */
+    --text-muted: #71717a;
+    /* Zinc 500 */
+    --text-disabled: #a1a1aa;
+    /* Zinc 400 */
 
-    /* Borders - Light */
-    --border: #e2e8f0;
-    /* Slate 200 */
-    --border-light: #cbd5e1;
-    /* Slate 300 */
+    /* Borders - Neutral */
+    --border: #e4e4e7;
+    /* Zinc 200 */
+    --border-light: #d4d4d8;
+    /* Zinc 300 */
+
 
     /* Shadows - Light (lighter shadows) */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -183,7 +184,7 @@ body {
 
 /* Navbar - Top Navigation */
 .navbar {
-    background: rgba(30, 41, 59, 0.95);
+    background: rgba(24, 24, 27, 0.95);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     padding: 0 var(--spacing-xl);
@@ -208,8 +209,9 @@ body {
     color: var(--text-primary);
     font-weight: 700;
     letter-spacing: -0.025em;
-    background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+    background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -304,6 +306,7 @@ body {
 }
 
 .card:hover {
+    transform: translateY(-4px);
     border-color: var(--border-light);
     box-shadow: var(--shadow-lg);
 }
@@ -646,13 +649,18 @@ tr:hover td {
 .badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.6rem;
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.7rem;
+    font-weight: 700;
     line-height: 1;
-    letter-spacing: 0.025em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
+    transition: var(--transition);
+}
+
+.badge:hover {
+    filter: brightness(1.1);
 }
 
 .badge-success {
@@ -736,6 +744,22 @@ tr:hover td {
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
+}
+
+/* Interactive Filter Cards */
+.stat-card {
+    transition: var(--transition);
+}
+
+.stat-card.active-filter {
+    background: var(--bg-hover);
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-light);
 }
 
 .stat-label {
@@ -958,21 +982,65 @@ tr:hover td {
     width: 100%;
 }
 
-/* Scrollbar Customization */
+/* Improved Scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--bg-app);
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
     background: var(--border);
-    border-radius: 4px;
+    border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
+}
+
+/* New Utility Classes for Color Coding */
+.text-income {
+    color: var(--success);
+}
+
+.text-expense {
+    color: var(--danger);
+}
+
+.font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Enhanced Table Styling */
+.table-container {
+    max-height: 600px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-sm);
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 var(--border);
+}
+
+th {
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    background: var(--bg-card);
+    /* Ensure sticky header isn't transparent */
+}
+
+/* Row Hover Effect */
+tbody tr {
+    transition: background-color 0.1s ease;
+}
+
+tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
 }

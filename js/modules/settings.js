@@ -72,7 +72,7 @@ async function selectDbPath() {
 }
 
 async function clearAllData() {
-    if (!confirm('⚠️ WARNING: This will delete ALL data including projects, workers, materials, equipment, and expenses. This action CANNOT be undone!\n\nAre you absolutely sure?')) {
+    if (!confirm('WARNING: This will delete ALL data including projects, workers, materials, equipment, and expenses. This action CANNOT be undone!\n\nAre you absolutely sure?')) {
         return;
     }
 

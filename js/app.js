@@ -11,6 +11,7 @@ async function navigateTo(viewName) {
 
     const mainContent = document.getElementById('main-content');
     const navbar = document.getElementById('navbar');
+    const projectNav = document.getElementById('project-nav-links');
 
     // Update active nav button
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -19,6 +20,17 @@ async function navigateTo(viewName) {
             btn.classList.add('active');
         }
     });
+
+    // Toggle Project Nav Links based on View
+    if (projectNav) {
+        // Hide project links if on landing pages (login or project list)
+        // Show only when inside a project module
+        if (viewName === 'projects' || viewName === 'login') {
+            projectNav.style.display = 'none';
+        } else {
+            projectNav.style.display = 'flex';
+        }
+    }
 
     // Show loading
     showLoading();

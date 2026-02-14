@@ -27,11 +27,18 @@
                 <span id="currentProjectName">No Project Selected</span>
             </div>
             <div class="nav-menu">
-                <button class="nav-btn" data-view="projects"><i class="ph ph-squares-four"></i> Projects</button>
-                <button class="nav-btn" data-view="labour"><i class="ph ph-users-three"></i> Labour</button>
-                <button class="nav-btn" data-view="materials"><i class="ph ph-package"></i> Materials</button>
-                <button class="nav-btn" data-view="equipment"><i class="ph ph-truck"></i> Equipment</button>
-                <button class="nav-btn" data-view="finance"><i class="ph ph-currency-dollar"></i> Finance</button>
+                <button class="nav-btn" onclick="navigateTo('projects')" data-view="projects"><i
+                        class="ph ph-squares-four"></i> Projects</button>
+                <div id="project-nav-links" style="display: none; gap: 0.5rem;">
+                    <button class="nav-btn" onclick="navigateTo('labour')" data-view="labour"><i
+                            class="ph ph-users-three"></i> Labour</button>
+                    <button class="nav-btn" onclick="navigateTo('materials')" data-view="materials"><i
+                            class="ph ph-package"></i> Materials</button>
+                    <button class="nav-btn" onclick="navigateTo('equipment')" data-view="equipment"><i
+                            class="ph ph-truck"></i> Equipment</button>
+                    <button class="nav-btn" onclick="navigateTo('finance')" data-view="finance"><i
+                            class="ph ph-currency-dollar"></i> Finance</button>
+                </div>
                 <button class="nav-btn" data-view="settings"><i class="ph ph-gear"></i> Settings</button>
                 <button class="nav-btn" id="themeBtn" onclick="toggleTheme()"><i class="ph ph-sun"></i></button>
                 <button class="nav-btn logout-btn" id="logoutBtn"><i class="ph ph-sign-out"></i> Logout</button>

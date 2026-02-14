@@ -42,6 +42,11 @@ async function loadProjectsView() {
                         <input type="text" id="projectLocation" class="form-input" required />
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Cover Image URL (Optional)</label>
+                        <input type="url" id="projectImage" class="form-input" placeholder="https://example.com/image.jpg" />
+                        <small style="color: var(--text-muted); font-size: 0.75rem;">Leave blank for a random construction image.</small>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Description</label>
                         <textarea id="projectDescription" class="form-textarea"></textarea>
                     </div>
@@ -103,22 +108,48 @@ function renderProjectCards() {
         `;
     }
 
-    return allProjects.map(project => `
-        <div class="card" style="cursor: pointer;" onclick="selectProject('${project._id}')">
-            <div class="card-header">
-                <h3 class="card-title">${escapeHtml(project.name)}</h3>
-                ${AppState.currentProject && AppState.currentProject._id === project._id
-            ? '<span class="badge badge-success">Active</span>'
-            : ''}
-            </div>
-            <div class="card-body">
-                <p><strong><i class="ph ph-map-pin"></i> Location:</strong> ${escapeHtml(project.location)}</p>
-                <p><strong><i class="ph ph-currency-inr"></i> Budget:</strong> ${formatCurrency(project.budget)}</p>
-                <p><strong><i class="ph ph-calendar-blank"></i> Start Date:</strong> ${formatDate(project.startDate)}</p>
-                ${project.description ? `<p style="margin-top: 0.5rem; color: var(--text-muted);">${escapeHtml(project.description)}</p>` : ''}
+    return allProjects.map(project => {
+        const hasImage = project.image && project.image.trim().length > 0;
+        const imageHtml = hasImage
+            ? `<div style="height: 160px; overflow: hidden; border-bottom: 1px solid var(--border);">
+                 <img src="${escapeHtml(project.image)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                 <div style="display:none; height: 100%; width: 100%; background: var(--bg-hover); align-items: center; justify-content: center; flex-direction: column; color: var(--text-muted);">
+                    <i class="ph ph-image-broken" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                    <span>Image not found</span>
+                 </div>
+               </div>`
+            : `<div style="height: 160px; background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg-card) 100%); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border);">
+                 <i class="ph ph-buildings" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5;"></i>
+               </div>`;
+
+        return `
+        <div class="card" style="cursor: pointer; position: relative; overflow: hidden; padding: 0;" onclick="selectProject('${project._id}')">
+            ${imageHtml}
+            <div style="padding: 1rem;">
+                <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0; border-bottom: none;">
+                    <h3 class="card-title" style="font-size: 1.25rem;">${escapeHtml(project.name)}</h3>
+                    ${AppState.currentProject && AppState.currentProject._id === project._id
+                ? '<span class="badge badge-success">Selected</span>'
+                : '<i class="ph ph-caret-right" style="color: var(--text-muted);"></i>'}
+                </div>
+                <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div class="flex gap-sm" style="align-items: center; color: var(--text-secondary);">
+                        <i class="ph ph-map-pin" style="color: var(--primary);"></i>
+                        <span>${escapeHtml(project.location)}</span>
+                    </div>
+                    <div class="flex gap-sm" style="align-items: center; color: var(--text-secondary);">
+                        <i class="ph ph-currency-inr" style="color: var(--success);"></i>
+                        <span class="font-mono" style="font-weight: 600;">${formatCurrency(project.budget)}</span>
+                    </div>
+                    <div class="flex gap-sm" style="align-items: center; color: var(--text-secondary);">
+                        <i class="ph ph-calendar-blank" style="color: var(--info);"></i>
+                        <span>Start: ${formatDate(project.startDate)}</span>
+                    </div>
+                    ${project.description ? `<p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 0.5rem;">${escapeHtml(project.description)}</p>` : ''}
+                </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function initializeProjects() {
@@ -173,11 +204,19 @@ async function handleAddProject() {
             return;
         }
 
+        const startYear = new Date(startDate).getFullYear();
+        if (isNaN(startYear) || startYear < 1900 || startYear > 2100) {
+            showAlert('Please enter a valid year between 1900 and 2100', 'warning');
+            document.getElementById('projectStartDate').focus();
+            return;
+        }
+
         const projectData = {
             name: name,
             location: location,
             description: document.getElementById('projectDescription').value.trim(),
             budget: budget,
+            image: document.getElementById('projectImage').value.trim(),
             budgetBreakdown: {
                 labour: budgetLabour,
                 materials: budgetMaterials,
