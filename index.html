@@ -5,10 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Construction Operations Manager</title>
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Inter & Roboto Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="css/styles.css">
@@ -17,44 +19,81 @@
 <body>
     <!-- Main Application Container -->
     <div id="app">
-        <!-- Navigation Bar (Hidden on login) -->
-        <nav id="navbar" class="navbar" style="display: none;">
-            <div class="nav-brand">
-                <h1><i class="ph-fill ph-buildings"></i> Construction Manager</h1>
+        <!-- Sidebar Navigation (New Layout) -->
+        <aside id="sidebar" class="sidebar" style="display: none;">
+            <div class="sidebar-brand">
+                <div class="brand-logo">K</div>
+                <span class="brand-name">Kumaran Infratech</span>
             </div>
-            <div class="nav-project-info">
-                <i class="ph ph-folder-open"></i>
-                <span id="currentProjectName">No Project Selected</span>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" onclick="navigateTo('dashboard')" data-view="dashboard"
+                    title="Dashboard">
+                    <i class="ph ph-squares-four"></i>
+                    <span class="nav-label">Dashboard</span>
+                </button>
+                <div class="nav-divider"></div>
+                <button class="nav-item" onclick="navigateTo('projects')" data-view="projects" title="Projects">
+                    <i class="ph ph-briefcase"></i>
+                    <span class="nav-label">Projects</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('labour')" data-view="labour" title="Labour">
+                    <i class="ph ph-users-three"></i>
+                    <span class="nav-label">Labour</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('materials')" data-view="materials" title="Materials">
+                    <i class="ph ph-package"></i>
+                    <span class="nav-label">Materials</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('equipment')" data-view="equipment" title="Equipment">
+                    <i class="ph ph-truck"></i>
+                    <span class="nav-label">Equipment</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('finance')" data-view="finance" title="Finance">
+                    <i class="ph ph-currency-dollar"></i>
+                    <span class="nav-label">Finance</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="nav-item" data-view="settings" title="Settings">
+                    <i class="ph ph-gear"></i>
+                </button>
+                <button class="nav-item" id="themeBtn" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="ph ph-sun"></i>
+                </button>
+                <button class="nav-item logout-btn" id="logoutBtn" title="Logout">
+                    <i class="ph ph-sign-out"></i>
+                </button>
             </div>
-            <div class="nav-menu">
-                <button class="nav-btn" onclick="navigateTo('projects')" data-view="projects"><i
-                        class="ph ph-squares-four"></i> Projects</button>
-                <div id="project-nav-links" style="display: none; gap: 0.5rem;">
-                    <button class="nav-btn" onclick="navigateTo('labour')" data-view="labour"><i
-                            class="ph ph-users-three"></i> Labour</button>
-                    <button class="nav-btn" onclick="navigateTo('materials')" data-view="materials"><i
-                            class="ph ph-package"></i> Materials</button>
-                    <button class="nav-btn" onclick="navigateTo('equipment')" data-view="equipment"><i
-                            class="ph ph-truck"></i> Equipment</button>
-                    <button class="nav-btn" onclick="navigateTo('finance')" data-view="finance"><i
-                            class="ph ph-currency-dollar"></i> Finance</button>
-                </div>
-                <button class="nav-btn" data-view="settings"><i class="ph ph-gear"></i> Settings</button>
-                <button class="nav-btn" id="themeBtn" onclick="toggleTheme()"><i class="ph ph-sun"></i></button>
-                <button class="nav-btn logout-btn" id="logoutBtn"><i class="ph ph-sign-out"></i> Logout</button>
-            </div>
-        </nav>
+        </aside>
 
         <!-- Main Content Area -->
         <main id="main-content">
-            <!-- Views will be loaded here dynamically -->
+            <!-- Command Palette / Header Area could go here -->
+            <header class="top-header" id="top-header" style="display: none;">
+                <div class="header-project-info">
+                    <h2 id="headerProjectName">Dashboard</h2>
+                    <div class="project-status-badge">Active Project</div>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" placeholder="Search (Ctrl + K)...">
+                    </div>
+                </div>
+            </header>
+
+            <div id="view-container">
+                <!-- Views will be loaded here dynamically -->
+            </div>
         </main>
     </div>
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
         <div class="loading-spinner"></div>
-        <p>Loading...</p>
+        <p>Loading System...</p>
     </div>
 
     <!-- Scripts -->

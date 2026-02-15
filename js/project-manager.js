@@ -257,8 +257,11 @@ async function selectProject(projectId) {
 
     if (result.success && result.data) {
         setCurrentProject(result.data);
+        // Show success alert
         showAlert('Project selected: ' + result.data.name, 'success');
-        navigateTo('labour'); // Navigate to labour module after selecting project
+
+        // Navigate to the new Dashboard view
+        navigateTo('dashboard');
     } else {
         console.error('Project selection failed:', result);
         showAlert('Failed to select project: ' + (result.message || 'Project not found'), 'danger');
