@@ -162,38 +162,55 @@ function renderEquipmentTable() {
                         <th>Category</th>
                         <th>Status</th>
                         <th>Ownership</th>
-                        <th>Cost</th>
-                        <th>Rental Rate</th>
+                        <th>Cost Details</th>
+                        <th>Supplier</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${allEquipment.map(equipment => {
         let statusBadge = 'badge-info';
-        if (equipment.status === 'Available') statusBadge = 'badge-success';
-        if (equipment.status === 'In Use') statusBadge = 'badge-warning';
-        if (equipment.status === 'Under Maintenance') statusBadge = 'badge-danger';
+        let statusColor = 'var(--info)';
+        if (equipment.status === 'Available') { statusBadge = 'badge-success'; statusColor = 'var(--success)'; }
+        if (equipment.status === 'In Use') { statusBadge = 'badge-warning'; statusColor = 'var(--warning)'; }
+        if (equipment.status === 'Under Maintenance') { statusBadge = 'badge-danger'; statusColor = 'var(--danger)'; }
 
         return `
-                            <tr>
-                                <td><strong>${escapeHtml(equipment.name)}</strong></td>
-                                <td>${equipment.category}</td>
-                                <td><span class="badge ${statusBadge}">${equipment.status}</span></td>
-                                <td>${equipment.ownership}</td>
-                                <td>${formatCurrency(equipment.totalCost)}</td>
-                                <td>${equipment.rentalRate ? formatCurrency(equipment.rentalRate) + '/day' : '-'}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-secondary" 
-                                            onclick="editEquipment('${equipment._id}')">
-                                        Edit
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" 
-                                            onclick="deleteEquipment('${equipment._id}')">
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
+            <tr>
+                <td>
+                    <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(equipment.name)}</div>
+                </td>
+                <td><span style="color: var(--text-secondary); font-size: 0.85rem;">${equipment.category}</span></td>
+                <td><span class="badge ${statusBadge}">${equipment.status}</span></td>
+                <td>
+                    ${equipment.ownership === 'Owned'
+                ? '<span style="color: var(--primary); font-weight: 500;"><i class="ph ph-check-circle"></i> Owned</span>'
+                : '<span style="color: var(--text-muted);"><i class="ph ph-clock"></i> Rented</span>'}
+                </td>
+                <td>
+                    <div class="font-mono" style="font-size: 0.9rem;">
+                        ${equipment.ownership === 'Rented'
+                ? `<span style="color: var(--text-muted);">Rate:</span> <span class="text-expense">${formatCurrency(equipment.rentalRate)}/day</span>`
+                : `<span style="color: var(--text-muted);">Cost:</span> <span class="text-expense">${formatCurrency(equipment.totalCost)}</span>`}
+                    </div>
+                </td>
+                <td>
+                     <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                        ${equipment.supplier ? `<i class="ph ph-storefront"></i> ${escapeHtml(equipment.supplier)}` : '-'}
+                     </div>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" 
+                            onclick="editEquipment('${equipment._id}')">
+                        <i class="ph ph-pencil-simple"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" 
+                            onclick="deleteEquipment('${equipment._id}')">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
     }).join('')}
                 </tbody>
             </table>

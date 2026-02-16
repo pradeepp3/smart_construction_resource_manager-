@@ -143,36 +143,50 @@ function renderMaterialsTable() {
             <table>
                 <thead>
                     <tr>
-                        <th>Material Name</th>
+                        <th>Material</th>
                         <th>Category</th>
-                        <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Total Cost</th>
+                        <th>Stock Status</th>
+                        <th>Price / Unit</th>
+                        <th>Total Value</th>
                         <th>Supplier</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${allMaterials.map(material => `
+                    ${allMaterials.map(material => {
+        const isLowStock = material.quantity < 10;
+        return `
                         <tr>
-                            <td><strong>${escapeHtml(material.name)}</strong></td>
-                            <td><span class="badge badge-info">${material.category}</span></td>
-                            <td>${material.quantity} ${material.unit}</td>
-                            <td>${formatCurrency(material.unitPrice)}</td>
-                            <td><strong>${formatCurrency(material.totalCost)}</strong></td>
-                            <td>${escapeHtml(material.supplier || '-')}</td>
+                            <td>
+                                <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(material.name)}</div>
+                            </td>
+                            <td><span class="badge badge-secondary" style="background: var(--bg-hover); color: var(--text-secondary);">${material.category}</span></td>
+                            <td>
+                                <div class="flex gap-sm" style="align-items: center;">
+                                    <span class="font-mono" style="font-weight: 600;">${material.quantity} ${material.unit}</span>
+                                    ${isLowStock ? '<span class="badge badge-danger" style="font-size: 0.65rem;">Low</span>' : ''}
+                                </div>
+                            </td>
+                            <td class="font-mono">${formatCurrency(material.unitPrice)}</td>
+                            <td><strong class="text-expense">${formatCurrency(material.totalCost)}</strong></td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+                                    <i class="ph ph-storefront" style="color: var(--text-muted);"></i>
+                                    ${escapeHtml(material.supplier || 'Unknown')}
+                                </div>
+                            </td>
                             <td>
                                 <button class="btn btn-sm btn-secondary" 
                                         onclick="editMaterial('${material._id}')">
-                                    Edit
+                                    <i class="ph ph-pencil-simple"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger" 
                                         onclick="deleteMaterial('${material._id}')">
-                                    Delete
+                                    <i class="ph ph-trash"></i>
                                 </button>
                             </td>
                         </tr>
-                    `).join('')}
+                    `}).join('')}
                 </tbody>
             </table>
         </div>

@@ -55,24 +55,24 @@ async function loadFinanceView() {
                         </div>
                         <div class="calc-grid">
                             <button class="calc-btn clear" onclick="calcClear()">C</button>
-                            <button class="calc-btn operator" onclick="calcOperation('/')">÷</button>
-                            <button class="calc-btn operator" onclick="calcOperation('*')">×</button>
-                            <button class="calc-btn" onclick="calcDelete()">⌫</button>
+                            <button class="calc-btn operator" onclick="calcOperation('/')"><i class="ph ph-divide"></i></button>
+                            <button class="calc-btn operator" onclick="calcOperation('*')"><i class="ph ph-x"></i></button>
+                            <button class="calc-btn" onclick="calcDelete()"><i class="ph ph-backspace"></i></button>
                             
                             <button class="calc-btn" onclick="calcInput('7')">7</button>
                             <button class="calc-btn" onclick="calcInput('8')">8</button>
                             <button class="calc-btn" onclick="calcInput('9')">9</button>
-                            <button class="calc-btn operator" onclick="calcOperation('-')">-</button>
+                            <button class="calc-btn operator" onclick="calcOperation('-')"><i class="ph ph-minus"></i></button>
                             
                             <button class="calc-btn" onclick="calcInput('4')">4</button>
                             <button class="calc-btn" onclick="calcInput('5')">5</button>
                             <button class="calc-btn" onclick="calcInput('6')">6</button>
-                            <button class="calc-btn operator" onclick="calcOperation('+')">+</button>
+                            <button class="calc-btn operator" onclick="calcOperation('+')"><i class="ph ph-plus"></i></button>
                             
                             <button class="calc-btn" onclick="calcInput('1')">1</button>
                             <button class="calc-btn" onclick="calcInput('2')">2</button>
                             <button class="calc-btn" onclick="calcInput('3')">3</button>
-                            <button class="calc-btn equals" onclick="calcResult()">=</button>
+                            <button class="calc-btn equals" onclick="calcResult()"><i class="ph ph-equals"></i></button>
                             
                             <button class="calc-btn" style="grid-column: span 2;" onclick="calcInput('0')">0</button>
                             <button class="calc-btn" onclick="calcInput('.')">.</button>
@@ -220,10 +220,10 @@ function renderCostBreakdownChart(summary) {
     };
 
     const categories = [
-        { name: 'Labour', amount: summary.labourCost, budget: budgets.labour, color: 'var(--data-4)' },
-        { name: 'Materials', amount: summary.materialCost, budget: budgets.materials, color: 'var(--data-5)' },
-        { name: 'Equipment', amount: summary.equipmentCost, budget: budgets.equipment, color: 'var(--data-3)' },
-        { name: 'Other', amount: summary.otherExpenses, budget: budgets.other, color: 'var(--data-6)' }
+        { name: 'Labour', icon: '<i class="ph ph-users-three"></i>', amount: summary.labourCost, budget: budgets.labour, color: 'var(--data-4)' },
+        { name: 'Materials', icon: '<i class="ph ph-package"></i>', amount: summary.materialCost, budget: budgets.materials, color: 'var(--data-5)' },
+        { name: 'Equipment', icon: '<i class="ph ph-truck"></i>', amount: summary.equipmentCost, budget: budgets.equipment, color: 'var(--data-3)' },
+        { name: 'Other', icon: '<i class="ph ph-receipt"></i>', amount: summary.otherExpenses, budget: budgets.other, color: 'var(--data-6)' }
     ];
 
     return `
@@ -237,7 +237,9 @@ function renderCostBreakdownChart(summary) {
         return `
                     <div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                            <span style="font-weight: 500; color: var(--text-secondary);">${cat.name}</span>
+                            <span style="font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="color: ${cat.color};">${cat.icon}</span> ${cat.name}
+                            </span>
                             <div style="text-align: right;">
                                 <span style="color: ${cat.color}; font-weight: 600; margin-right: 0.5rem;">${formatCurrency(cat.amount)}</span>
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">
@@ -304,15 +306,23 @@ function renderFinancialSummaryTable(summary, budget) {
                     ${rows}
                     <tr style="background: var(--bg-hover); font-weight: 600;">
                         <td><strong>Total Project</strong></td>
-                        <td><strong>${formatCurrency(summary.totalCost)}</strong></td>
-                        <td><strong>${formatCurrency(budget)}</strong></td>
-                        <td><strong>${budget > 0 ? ((summary.totalCost / budget * 100).toFixed(2)) + '%' : '0.00%'}</strong></td>
+                        <td><strong class="text-expense">${formatCurrency(summary.totalCost)}</strong></td>
+                        <td><strong class="text-income">${formatCurrency(budget)}</strong></td>
+                        <td>
+                            <div class="flex gap-sm" style="align-items: center;">
+                                <strong>${budget > 0 ? ((summary.totalCost / budget * 100).toFixed(2)) + '%' : '0.00%'}</strong>
+                            </div>
+                        </td>
                     </tr>
                     <tr style="background: var(--bg-card);">
-                        <td><strong>Remaining</strong></td>
-                        <td colspan="3" style="color: ${budget - summary.totalCost >= 0 ? 'var(--success)' : 'var(--danger)'};">
-                            <strong>${formatCurrency(budget - summary.totalCost)}</strong>
-                            ${budget - summary.totalCost < 0 ? ' (Over Budget)' : ' Available'}
+                        <td><strong>Remaining Funds</strong></td>
+                        <td colspan="3" style="text-align: right;">
+                            <span class="font-mono" style="font-size: 1.1rem; color: ${budget - summary.totalCost >= 0 ? 'var(--success)' : 'var(--danger)'};">
+                                ${formatCurrency(budget - summary.totalCost)}
+                            </span>
+                            <span class="badge ${budget - summary.totalCost >= 0 ? 'badge-success' : 'badge-danger'}" style="margin-left: 0.5rem;">
+                                ${budget - summary.totalCost < 0 ? 'Over Budget' : 'Available'}
+                            </span>
                         </td>
                     </tr>
                 </tbody>
