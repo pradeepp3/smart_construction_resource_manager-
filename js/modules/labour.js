@@ -4,6 +4,17 @@ let allWorkers = [];
 let currentCategory = 'All';
 const workerCategories = ['Mason', 'Helper', 'Electrician', 'Carpenter'];
 
+// Helper: Escape HTML (may already be global, but safe to redefine)
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 async function loadLabourView() {
     if (!AppState.currentProject) {
         return `
@@ -56,7 +67,7 @@ async function loadLabourView() {
         if (cat === 'Mason') icon = 'ph-wall';
         if (cat === 'Electrician') icon = 'ph-lightning';
         if (cat === 'Carpenter') icon = 'ph-hammer';
-        if (cat === 'Helper') icon = 'ph-hand-palm'; // Changed from hand-open for better semantics
+        if (cat === 'Helper') icon = 'ph-hand-palm';
 
         return `
                     <div class="stat-card ${isActive ? 'active-filter' : ''}" 
@@ -68,7 +79,8 @@ async function loadLabourView() {
                         </div>
                         <div class="stat-value">${count}</div>
                         <div style="height: 4px; width: 100%; background: var(--bg-hover); margin-top: 0.5rem; border-radius: 2px;">
-                            <div style="height: 100%; width: ${(count / (allWorkers.length || 1) * 100)}%; background: ${isActive ? 'var(--primary)' : 'var(--text-muted)'};"></div>
+                            <div style="height: 100%; width: ${(count / (allWorkers.length || 1) * 100)}%; background: ${isActive ? 'var(--primary)' : 'var(--text-muted)'};">
+                            </div>
                         </div>
                     </div>
                     `;
@@ -107,7 +119,7 @@ async function loadLabourView() {
                         </div>
                         <div class="form-group" id="workerCategoryGroup">
                             <label class="form-label">Category</label>
-                            <select id="workerCategory" class="form-select" required>
+                            <select id="workerCategory" class="form-select" required onchange="toggleCategoryFields()">
                                 ${workerCategories.map(cat => `
                                     <option value="${cat}">${cat}</option>
                                 `).join('')}
@@ -152,7 +164,8 @@ async function loadLabourView() {
                             <input type="number" id="workerSqftArea" class="form-input" min="0" value="0" step="0.01" />
                         </div>
                     </div>
-                    
+
+
                     <div class="form-group">
                          <label class="form-label">Tools Assigned (comma-separated)</label>
                          <input type="text" id="workerTools" class="form-input" placeholder="e.g., Hammer, Drill" />
@@ -254,7 +267,7 @@ function renderWorkersList() {
                         <th>Category</th>
                         <th>Wage Details</th>
                         <th>Status</th>
-                        <th>Total Cost</th>
+                        <th>Total Cost / Capital</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -273,23 +286,45 @@ function renderWorkersList() {
             ? `${worker.daysWorked || 0} Days`
             : `${worker.sqftArea || 0} sqft`;
 
+        const isElectrician = worker.category === 'Electrician';
+        const totalCapital = parseFloat(worker.totalCapital) || 0;
+
+        // Render Total Cost / Capital column
+        let costCell = '';
+        if (isElectrician) {
+            costCell = `
+                <div>
+                    <button class="electrician-capital-btn" 
+                            onclick="openElectricianPayments('${worker._id}')"
+                            title="Click to manage team &amp; weekly payments">
+                        <i class="ph ph-users" style="color: var(--warning);"></i>
+                        <span class="capital-amount">Manage Team</span>
+                        <i class="ph ph-arrow-right" style="font-size:0.75rem; opacity:0.6;"></i>
+                    </button>
+                </div>`;
+        } else {
+            costCell = `<strong class="text-expense">${formatCurrency(totalCost)}</strong>`;
+        }
+
         return `
                             <tr>
                                 <td>
                                     <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(worker.name)}</div>
                                     <div style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(worker.phone)}</div>
                                 </td>
-                                <td><span class="badge badge-info">${worker.category}</span></td>
+                                <td>
+                                    <span class="badge ${worker.category === 'Electrician' ? 'badge-warning' : 'badge-info'}">${worker.category}</span>
+                                </td>
                                 <td>
                                     <div class="font-mono">${wageDisplay}</div>
+                                    <div style="font-size: 0.75rem; margin-top: 2px; color: var(--text-muted);">${workDisplay}</div>
                                 </td>
                                 <td>
-                                    <span class="badge ${totalCost > 0 ? 'badge-success' : 'badge-warning'}">
-                                        ${totalCost > 0 ? 'Active' : 'Pending'}
+                                    <span class="badge ${isElectrician || totalCost > 0 ? 'badge-success' : 'badge-warning'}">
+                                        ${isElectrician || totalCost > 0 ? 'Active' : 'Pending'}
                                     </span>
-                                    <div style="font-size: 0.75rem; margin-top: 2px;">${workDisplay}</div>
                                 </td>
-                                <td><strong class="text-expense">${formatCurrency(totalCost)}</strong></td>
+                                <td>${costCell}</td>
                                 <td>
                                     <button class="btn btn-sm btn-secondary" 
                                             onclick="editWorker('${worker._id}')">
@@ -391,15 +426,8 @@ function initializeLabour() {
 function switchCategory(category) {
     currentCategory = category;
 
-    // Refresh the entire view to update active states on stat cards
-    // Since we are generating HTML string, we just reload the main content div or re-render
-    // But re-rendering specific parts is more efficient.
-    // For simplicity given the vanilla JS structure, rerendering the content inside labour-container
-    // is easiest, but loading function returns string.
-
-    // We can just re-call loadLabourView and update main content
     loadLabourView().then(content => {
-        document.getElementById('main-content').innerHTML = content;
+        document.getElementById('view-container').innerHTML = content;
     });
 }
 
@@ -422,6 +450,7 @@ function showAddWorkerModal() {
         if (catGroup) catGroup.style.display = 'block';
     }
 
+    toggleCategoryFields();
     showModal('workerModal');
 }
 
@@ -454,6 +483,11 @@ async function editWorker(workerId) {
 
     // Toggle visibility based on type
     togglePaymentFields();
+    toggleCategoryFields();
+
+    // Electrician capital
+    const capitalField = document.getElementById('workerTotalCapital');
+    if (capitalField) capitalField.value = worker.totalCapital || 0;
 
     document.getElementById('workerTools').value = worker.tools ? worker.tools.join(', ') : '';
     document.getElementById('workerNotes').value = worker.notes || '';
@@ -467,6 +501,7 @@ async function handleSaveWorker() {
         const name = document.getElementById('workerName').value.trim();
         const phone = document.getElementById('workerPhone').value.trim();
         const paymentType = document.getElementById('workerPaymentType').value;
+        const category = document.getElementById('workerCategory').value;
 
         // Professional Validation
         if (!name) {
@@ -512,10 +547,11 @@ async function handleSaveWorker() {
         const toolsInput = document.getElementById('workerTools').value;
         const tools = toolsInput ? toolsInput.split(',').map(t => t.trim()).filter(t => t) : [];
 
+
         const workerData = {
             projectId: AppState.currentProject._id,
             name: name,
-            category: document.getElementById('workerCategory').value,
+            category: category,
             phone: phone,
             wageType: paymentType,
             dailyWage: dailyWage,
@@ -541,7 +577,7 @@ async function handleSaveWorker() {
             hideModal('workerModal');
             // Refresh view
             const updatedContent = await loadLabourView();
-            document.getElementById('main-content').innerHTML = updatedContent;
+            document.getElementById('view-container').innerHTML = updatedContent;
             // Restore tab
             if (currentCategory) {
                 switchCategory(currentCategory);
@@ -596,7 +632,6 @@ function togglePaymentFields() {
     const wageFields = document.getElementById('wageFields');
     const sqftFields = document.getElementById('sqftFields');
 
-    // Safety check if elements exist (in case modal is not fully loaded or ID mismatch)
     if (!wageFields || !sqftFields) return;
 
     if (type === 'daily') {
@@ -618,6 +653,18 @@ function togglePaymentFields() {
     }
 }
 
+function toggleCategoryFields() {
+    // No extra fields needed based on category (totalCapital removed)
+}
+
+// Navigate to electrician payment page
+function openElectricianPayments(workerId) {
+    const worker = allWorkers.find(w => w._id === workerId);
+    if (!worker) return;
+    AppState.currentElectricianWorkerId = workerId;
+    AppState.currentElectricianWorker = worker;
+    navigateTo('electrician-payments');
+}
 
 function showAttendanceModal() {
     const list = document.getElementById('attendanceList');
@@ -686,7 +733,7 @@ async function saveAttendance() {
 
         // Refresh view
         const updatedContent = await loadLabourView();
-        document.getElementById('main-content').innerHTML = updatedContent;
+        document.getElementById('view-container').innerHTML = updatedContent;
         if (currentCategory) switchCategory(currentCategory);
 
     } catch (error) {
@@ -707,6 +754,9 @@ window.deleteWorker = deleteWorker;
 window.showCostCalculator = showCostCalculator;
 window.showCalculatorTab = showCalculatorTab;
 window.togglePaymentFields = togglePaymentFields;
+window.toggleCategoryFields = toggleCategoryFields;
 window.showAttendanceModal = showAttendanceModal;
 window.toggleSelectAllAttendance = toggleSelectAllAttendance;
 window.saveAttendance = saveAttendance;
+window.openElectricianPayments = openElectricianPayments;
+window.escapeHtml = escapeHtml;

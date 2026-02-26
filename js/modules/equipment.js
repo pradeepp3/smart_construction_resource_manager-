@@ -300,7 +300,7 @@ async function handleSaveEquipment() {
             hideModal('equipmentModal');
             // Refresh view
             const updatedContent = await loadEquipmentView();
-            document.getElementById('main-content').innerHTML = updatedContent;
+            document.getElementById('view-container').innerHTML = updatedContent;
             // Also need to re-render the summary stats if visible, loadEquipmentView handles this
         } else {
             throw new Error(result ? result.message : 'Unknown error occurred');

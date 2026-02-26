@@ -387,6 +387,63 @@ ipcMain.handle('finance:createExpense', async (event, expenseData) => {
   }
 });
 
+// Electrician Payment handlers
+// Electrician Member handlers
+ipcMain.handle('electrician:getMembers', async (event, workerId) => {
+  try {
+    const members = await dbOperations.getElectricianMembers(workerId);
+    return { success: true, data: members };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('electrician:addMember', async (event, memberData) => {
+  try {
+    const member = await dbOperations.addElectricianMember(memberData);
+    return { success: true, data: member };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('electrician:deleteMember', async (event, memberId) => {
+  try {
+    await dbOperations.deleteElectricianMember(memberId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+// Electrician Payment handlers
+ipcMain.handle('electrician:getPayments', async (event, memberId) => {
+  try {
+    const payments = await dbOperations.getElectricianPayments(memberId);
+    return { success: true, data: payments };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('electrician:addPayment', async (event, paymentData) => {
+  try {
+    const payment = await dbOperations.addElectricianPayment(paymentData);
+    return { success: true, data: payment };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('electrician:deletePayment', async (event, paymentId) => {
+  try {
+    await dbOperations.deleteElectricianPayment(paymentId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
 // Settings handlers
 ipcMain.handle('settings:getConfig', async () => {
   try {
