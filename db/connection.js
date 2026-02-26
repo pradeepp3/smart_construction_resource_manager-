@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcrypt');
 
 let client = null;
 let db = null;
@@ -67,9 +68,10 @@ async function createDefaultUser() {
     const userCount = await users.countDocuments();
 
     if (userCount === 0) {
+        const hashedPassword = await bcrypt.hash('admin123', 10);
         await users.insertOne({
             username: 'admin',
-            password: 'admin123', // In production, this should be hashed
+            password: hashedPassword,
             role: 'admin',
             createdAt: new Date()
         });

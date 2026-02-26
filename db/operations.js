@@ -1,5 +1,6 @@
 const { getDatabase } = require('./connection');
 const { ObjectId } = require('mongodb');
+const bcrypt = require('bcrypt');
 
 // ==================== AUTHENTICATION ====================
 
@@ -7,12 +8,12 @@ async function authenticateUser(credentials) {
     const db = getDatabase();
     const users = db.collection('users');
 
-    const user = await users.findOne({
-        username: credentials.username,
-        password: credentials.password // In production, use bcrypt
-    });
+    const user = await users.findOne({ username: credentials.username });
 
-    return user;
+    if (!user) return null;
+
+    const isMatch = await bcrypt.compare(credentials.password, user.password);
+    return isMatch ? user : null;
 }
 
 // ==================== PROJECTS ====================
