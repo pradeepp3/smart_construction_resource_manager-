@@ -50,6 +50,16 @@ contextBridge.exposeInMainWorld('api', {
         createExpense: (expenseData) => ipcRenderer.invoke('finance:createExpense', expenseData)
     },
 
+    // Electrician Team Management
+    electrician: {
+        getMembers: (workerId) => ipcRenderer.invoke('electrician:getMembers', workerId),
+        addMember: (memberData) => ipcRenderer.invoke('electrician:addMember', memberData),
+        deleteMember: (memberId) => ipcRenderer.invoke('electrician:deleteMember', memberId),
+        getPayments: (memberId) => ipcRenderer.invoke('electrician:getPayments', memberId),
+        addPayment: (paymentData) => ipcRenderer.invoke('electrician:addPayment', paymentData),
+        deletePayment: (paymentId) => ipcRenderer.invoke('electrician:deletePayment', paymentId)
+    },
+
     // Settings
     settings: {
         getConfig: () => ipcRenderer.invoke('settings:getConfig'),

@@ -353,6 +353,72 @@ async function updateConfiguration(updates) {
     return await getConfiguration();
 }
 
+// ==================== ELECTRICIAN MEMBERS ====================
+
+async function getElectricianMembers(workerId) {
+    const db = getDatabase();
+    const members = db.collection('electrician_members');
+    const results = await members.find({ workerId }).sort({ createdAt: 1 }).toArray();
+    return results.map(m => ({
+        ...m,
+        _id: m._id.toString()
+    }));
+}
+
+async function addElectricianMember(memberData) {
+    const db = getDatabase();
+    const members = db.collection('electrician_members');
+    const newMember = { ...memberData, createdAt: new Date() };
+    const result = await members.insertOne(newMember);
+    return { ...newMember, _id: result.insertedId.toString() };
+}
+
+async function deleteElectricianMember(memberId) {
+    const db = getDatabase();
+    const members = db.collection('electrician_members');
+    const payments = db.collection('electrician_payments');
+    try {
+        const id = typeof memberId === 'string' ? new ObjectId(memberId) : memberId;
+        // Cascade delete all payments for this member
+        await payments.deleteMany({ memberId: memberId });
+        await members.deleteOne({ _id: id });
+    } catch (error) {
+        await payments.deleteMany({ memberId: memberId });
+        await members.deleteOne({ _id: memberId });
+    }
+}
+
+// ==================== ELECTRICIAN WEEKLY PAYMENTS ====================
+
+async function getElectricianPayments(memberId) {
+    const db = getDatabase();
+    const payments = db.collection('electrician_payments');
+    const results = await payments.find({ memberId }).sort({ createdAt: 1 }).toArray();
+    return results.map(p => ({
+        ...p,
+        _id: p._id.toString()
+    }));
+}
+
+async function addElectricianPayment(paymentData) {
+    const db = getDatabase();
+    const payments = db.collection('electrician_payments');
+    const newPayment = { ...paymentData, createdAt: new Date() };
+    const result = await payments.insertOne(newPayment);
+    return { ...newPayment, _id: result.insertedId.toString() };
+}
+
+async function deleteElectricianPayment(paymentId) {
+    const db = getDatabase();
+    const payments = db.collection('electrician_payments');
+    try {
+        const id = typeof paymentId === 'string' ? new ObjectId(paymentId) : paymentId;
+        await payments.deleteOne({ _id: id });
+    } catch (error) {
+        await payments.deleteOne({ _id: paymentId });
+    }
+}
+
 module.exports = {
     authenticateUser,
     getAllProjects,
@@ -376,5 +442,11 @@ module.exports = {
     createExpense,
     getFinancialSummary,
     getConfiguration,
-    updateConfiguration
+    updateConfiguration,
+    getElectricianMembers,
+    addElectricianMember,
+    deleteElectricianMember,
+    getElectricianPayments,
+    addElectricianPayment,
+    deleteElectricianPayment
 };

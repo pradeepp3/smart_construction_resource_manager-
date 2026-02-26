@@ -280,7 +280,7 @@ async function handleSaveMaterial() {
             hideModal('materialModal');
             // Refresh view
             const updatedContent = await loadMaterialsView();
-            document.getElementById('main-content').innerHTML = updatedContent;
+            document.getElementById('view-container').innerHTML = updatedContent;
         } else {
             throw new Error(result ? result.message : 'Unknown error occurred');
         }

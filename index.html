@@ -4,26 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construction Operations Manager</title>
-    <!-- Google Fonts: Inter & Roboto Mono -->
+    <title>Kumaran Infratech — Construction Operations Platform</title>
+    <meta name="description" content="Enterprise-grade construction resource management for multinational projects.">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
         rel="stylesheet">
-    <!-- Phosphor Icons -->
+
+    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
-    <!-- Main Application Container -->
     <div id="app">
-        <!-- Sidebar Navigation (New Layout) -->
-        <aside id="sidebar" class="sidebar" style="display: none;">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="sidebar" style="display:none;">
             <div class="sidebar-brand">
                 <div class="brand-logo">K</div>
-                <span class="brand-name">Kumaran Infratech</span>
+                <div>
+                    <div class="brand-name">Kumaran Infratech</div>
+                    <div class="brand-tagline">Ops Platform v2.0</div>
+                </div>
             </div>
 
             <nav class="sidebar-nav">
@@ -33,12 +44,13 @@
                     <span class="nav-label">Dashboard</span>
                 </button>
                 <div class="nav-divider"></div>
+                <div class="section-label" style="padding: 0 .5rem;">Management</div>
                 <button class="nav-item" onclick="navigateTo('projects')" data-view="projects" title="Projects">
                     <i class="ph ph-briefcase"></i>
                     <span class="nav-label">Projects</span>
                 </button>
                 <button class="nav-item" onclick="navigateTo('labour')" data-view="labour" title="Labour">
-                    <i class="ph ph-users-three"></i>
+                    <i class="ph ph-hard-hat"></i>
                     <span class="nav-label">Labour</span>
                 </button>
                 <button class="nav-item" onclick="navigateTo('materials')" data-view="materials" title="Materials">
@@ -49,14 +61,16 @@
                     <i class="ph ph-truck"></i>
                     <span class="nav-label">Equipment</span>
                 </button>
+                <div class="nav-divider"></div>
+                <div class="section-label" style="padding: 0 .5rem;">Finance</div>
                 <button class="nav-item" onclick="navigateTo('finance')" data-view="finance" title="Finance">
-                    <i class="ph ph-currency-dollar"></i>
+                    <i class="ph ph-chart-pie-slice"></i>
                     <span class="nav-label">Finance</span>
                 </button>
             </nav>
 
             <div class="sidebar-footer">
-                <button class="nav-item" data-view="settings" title="Settings">
+                <button class="nav-item" onclick="navigateTo('settings')" data-view="settings" title="Settings">
                     <i class="ph ph-gear"></i>
                 </button>
                 <button class="nav-item" id="themeBtn" onclick="toggleTheme()" title="Toggle Theme">
@@ -68,32 +82,46 @@
             </div>
         </aside>
 
-        <!-- Main Content Area -->
+        <!-- Main Content -->
         <main id="main-content">
-            <!-- Command Palette / Header Area could go here -->
-            <header class="top-header" id="top-header" style="display: none;">
-                <div class="header-project-info">
-                    <h2 id="headerProjectName">Dashboard</h2>
-                    <div class="project-status-badge">Active Project</div>
+            <!-- Top Header -->
+            <header class="top-header" id="top-header" style="display:none;">
+                <div class="header-left">
+                    <div class="header-project-info">
+                        <h2 id="headerProjectName">Dashboard</h2>
+                        <div class="project-status-badge">Active Project</div>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <div class="search-bar">
                         <i class="ph ph-magnifying-glass"></i>
-                        <input type="text" placeholder="Search (Ctrl + K)...">
+                        <input type="text" placeholder="Search anything... (Ctrl+K)" id="globalSearch">
+                    </div>
+                    <div class="header-icon-btn" title="Notifications" id="notifBtn">
+                        <i class="ph ph-bell"></i>
+                        <span class="notif-badge" id="notifBadge" style="display:none;">3</span>
+                    </div>
+                    <div class="user-chip" id="userChip">
+                        <div class="user-chip-avatar" id="userAvatarChip">A</div>
+                        <span class="user-chip-name" id="userNameChip">Admin</span>
                     </div>
                 </div>
             </header>
 
-            <div id="view-container">
-                <!-- Views will be loaded here dynamically -->
-            </div>
+            <div id="view-container"></div>
         </main>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="loading-spinner"></div>
-        <p>Loading System...</p>
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="loading-logo">K</div>
+        <div class="loading-bar">
+            <div class="loading-bar-fill"></div>
+        </div>
+        <div class="loading-text">Initializing Platform...</div>
     </div>
 
     <!-- Scripts -->

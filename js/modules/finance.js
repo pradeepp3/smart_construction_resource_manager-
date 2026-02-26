@@ -525,7 +525,7 @@ async function handleEditBudget() {
 
         // Refresh view
         const updatedContent = await loadFinanceView();
-        document.getElementById('main-content').innerHTML = updatedContent;
+        document.getElementById('view-container').innerHTML = updatedContent;
 
     } catch (error) {
         hideLoading();
