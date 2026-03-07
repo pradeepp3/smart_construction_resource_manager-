@@ -275,8 +275,8 @@ function renderWorkersList() {
                     ${categoryWorkers.map(worker => {
         const isDaily = worker.wageType !== 'sqft';
         const totalCost = isDaily
-            ? (worker.dailyWage || 0) * (worker.daysWorked || 0)
-            : (worker.sqftRate || 0) * (worker.sqftArea || 0);
+            ? toNumber(worker.dailyWage) * toNumber(worker.daysWorked)
+            : toNumber(worker.sqftRate) * toNumber(worker.sqftArea);
 
         const wageDisplay = isDaily
             ? `${formatCurrency(worker.dailyWage)}<span style="font-size:0.7em; color:var(--text-muted)">/day</span>`
@@ -350,8 +350,8 @@ function renderCategoryCostSummary() {
         const totalWorkers = categoryWorkers.length;
         const totalCost = categoryWorkers.reduce((sum, w) => {
             const cost = w.wageType === 'sqft'
-                ? (w.sqftRate || 0) * (w.sqftArea || 0)
-                : (w.dailyWage || 0) * (w.daysWorked || 0);
+                ? toNumber(w.sqftRate) * toNumber(w.sqftArea)
+                : toNumber(w.dailyWage) * toNumber(w.daysWorked);
             return sum + cost;
         }, 0);
 
@@ -715,8 +715,8 @@ async function saveAttendance() {
             const worker = allWorkers.find(w => w._id === id);
             if (!worker) return null;
 
-            const newDays = (worker.daysWorked || 0) + 1;
-            const newCost = (worker.dailyWage || 0) * newDays;
+            const newDays = toNumber(worker.daysWorked) + 1;
+            const newCost = toNumber(worker.dailyWage) * newDays;
 
             return window.api.labour.update(id, {
                 projectId: worker.projectId,

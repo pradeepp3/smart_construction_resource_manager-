@@ -2,6 +2,115 @@ const { getDatabase } = require('./connection');
 const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 
+function toNumber(value, fallback = 0) {
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    return Number.isFinite(num) ? num : fallback;
+}
+
+function sanitizeProjectPayload(data = {}) {
+    const payload = { ...data };
+
+    if ('budget' in payload) payload.budget = toNumber(payload.budget);
+
+    if ('budgetBreakdown' in payload) {
+        const breakdown = payload.budgetBreakdown || {};
+        payload.budgetBreakdown = {
+            labour: toNumber(breakdown.labour),
+            materials: toNumber(breakdown.materials),
+            equipment: toNumber(breakdown.equipment),
+            other: toNumber(breakdown.other)
+        };
+    }
+
+    return payload;
+}
+
+function sanitizeWorkerPayload(data = {}) {
+    const payload = { ...data };
+    if ('dailyWage' in payload) payload.dailyWage = toNumber(payload.dailyWage);
+    if ('daysWorked' in payload) payload.daysWorked = toNumber(payload.daysWorked);
+    if ('sqftRate' in payload) payload.sqftRate = toNumber(payload.sqftRate);
+    if ('sqftArea' in payload) payload.sqftArea = toNumber(payload.sqftArea);
+    if ('totalCost' in payload) payload.totalCost = toNumber(payload.totalCost);
+    if ('totalCapital' in payload) payload.totalCapital = toNumber(payload.totalCapital);
+    return payload;
+}
+
+function sanitizeMaterialPayload(data = {}) {
+    const payload = { ...data };
+    if ('quantity' in payload) payload.quantity = toNumber(payload.quantity);
+    if ('unitPrice' in payload) payload.unitPrice = toNumber(payload.unitPrice);
+    if ('totalCost' in payload) payload.totalCost = toNumber(payload.totalCost);
+    return payload;
+}
+
+function sanitizeEquipmentPayload(data = {}) {
+    const payload = { ...data };
+    if ('totalCost' in payload) payload.totalCost = toNumber(payload.totalCost);
+    if ('rentalRate' in payload) payload.rentalRate = toNumber(payload.rentalRate);
+    return payload;
+}
+
+function normalizeProject(project) {
+    if (!project) return null;
+    const breakdown = project.budgetBreakdown || {};
+    return {
+        ...project,
+        _id: project._id.toString(),
+        budget: toNumber(project.budget),
+        budgetBreakdown: {
+            labour: toNumber(breakdown.labour),
+            materials: toNumber(breakdown.materials),
+            equipment: toNumber(breakdown.equipment),
+            other: toNumber(breakdown.other)
+        }
+    };
+}
+
+function normalizeWorker(worker) {
+    if (!worker) return null;
+    return {
+        ...worker,
+        _id: worker._id.toString(),
+        dailyWage: toNumber(worker.dailyWage),
+        daysWorked: toNumber(worker.daysWorked),
+        sqftRate: toNumber(worker.sqftRate),
+        sqftArea: toNumber(worker.sqftArea),
+        totalCost: toNumber(worker.totalCost),
+        totalCapital: toNumber(worker.totalCapital)
+    };
+}
+
+function normalizeMaterial(material) {
+    if (!material) return null;
+    return {
+        ...material,
+        _id: material._id.toString(),
+        quantity: toNumber(material.quantity),
+        unitPrice: toNumber(material.unitPrice),
+        totalCost: toNumber(material.totalCost)
+    };
+}
+
+function normalizeEquipment(item) {
+    if (!item) return null;
+    return {
+        ...item,
+        _id: item._id.toString(),
+        totalCost: toNumber(item.totalCost),
+        rentalRate: toNumber(item.rentalRate)
+    };
+}
+
+function normalizeExpense(expense) {
+    if (!expense) return null;
+    return {
+        ...expense,
+        _id: expense._id.toString(),
+        amount: toNumber(expense.amount)
+    };
+}
+
 // ==================== AUTHENTICATION ====================
 
 async function authenticateUser(credentials) {
@@ -22,10 +131,7 @@ async function getAllProjects() {
     const db = getDatabase();
     const projects = db.collection('projects');
     const results = await projects.find({}).toArray();
-    return results.map(project => ({
-        ...project,
-        _id: project._id.toString()
-    }));
+    return results.map(normalizeProject);
 }
 
 async function createProject(projectData) {
@@ -33,13 +139,13 @@ async function createProject(projectData) {
     const projects = db.collection('projects');
 
     const newProject = {
-        ...projectData,
+        ...sanitizeProjectPayload(projectData),
         createdAt: new Date(),
         updatedAt: new Date()
     };
 
     const result = await projects.insertOne(newProject);
-    return { ...newProject, _id: result.insertedId.toString() };
+    return normalizeProject({ ...newProject, _id: result.insertedId });
 }
 
 async function getProjectById(projectId) {
@@ -49,10 +155,10 @@ async function getProjectById(projectId) {
     try {
         const id = typeof projectId === 'string' ? new ObjectId(projectId) : projectId;
         const project = await projects.findOne({ _id: id });
-        return project ? { ...project, _id: project._id.toString() } : null;
+        return normalizeProject(project);
     } catch (error) {
         const project = await projects.findOne({ _id: projectId });
-        return project ? { ...project, _id: project._id.toString() } : null;
+        return normalizeProject(project);
     }
 }
 
@@ -62,15 +168,17 @@ async function updateProject(projectId, updates) {
 
     try {
         const id = typeof projectId === 'string' ? new ObjectId(projectId) : projectId;
+        const sanitizedUpdates = sanitizeProjectPayload(updates);
         await projects.updateOne(
             { _id: id },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         return await getProjectById(projectId);
     } catch (error) {
+        const sanitizedUpdates = sanitizeProjectPayload(updates);
         await projects.updateOne(
             { _id: projectId },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         return await getProjectById(projectId);
     }
@@ -94,10 +202,7 @@ async function getAllWorkers(projectId) {
     const db = getDatabase();
     const workers = db.collection('workers');
     const results = await workers.find({ projectId }).toArray();
-    return results.map(worker => ({
-        ...worker,
-        _id: worker._id.toString()
-    }));
+    return results.map(normalizeWorker);
 }
 
 async function createWorker(workerData) {
@@ -105,13 +210,13 @@ async function createWorker(workerData) {
     const workers = db.collection('workers');
 
     const newWorker = {
-        ...workerData,
+        ...sanitizeWorkerPayload(workerData),
         createdAt: new Date(),
         updatedAt: new Date()
     };
 
     const result = await workers.insertOne(newWorker);
-    return { ...newWorker, _id: result.insertedId.toString() };
+    return normalizeWorker({ ...newWorker, _id: result.insertedId });
 }
 
 async function updateWorker(workerId, updates) {
@@ -120,19 +225,21 @@ async function updateWorker(workerId, updates) {
 
     try {
         const id = typeof workerId === 'string' ? new ObjectId(workerId) : workerId;
+        const sanitizedUpdates = sanitizeWorkerPayload(updates);
         await workers.updateOne(
             { _id: id },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         const updated = await workers.findOne({ _id: id });
-        return { ...updated, _id: updated._id.toString() };
+        return normalizeWorker(updated);
     } catch (error) {
+        const sanitizedUpdates = sanitizeWorkerPayload(updates);
         await workers.updateOne(
             { _id: workerId },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         const updated = await workers.findOne({ _id: workerId });
-        return { ...updated, _id: updated._id.toString() };
+        return normalizeWorker(updated);
     }
 }
 
@@ -154,10 +261,7 @@ async function getAllMaterials(projectId) {
     const db = getDatabase();
     const materials = db.collection('materials');
     const results = await materials.find({ projectId }).toArray();
-    return results.map(material => ({
-        ...material,
-        _id: material._id.toString()
-    }));
+    return results.map(normalizeMaterial);
 }
 
 async function createMaterial(materialData) {
@@ -165,13 +269,13 @@ async function createMaterial(materialData) {
     const materials = db.collection('materials');
 
     const newMaterial = {
-        ...materialData,
+        ...sanitizeMaterialPayload(materialData),
         createdAt: new Date(),
         updatedAt: new Date()
     };
 
     const result = await materials.insertOne(newMaterial);
-    return { ...newMaterial, _id: result.insertedId.toString() };
+    return normalizeMaterial({ ...newMaterial, _id: result.insertedId });
 }
 
 async function updateMaterial(materialId, updates) {
@@ -180,19 +284,21 @@ async function updateMaterial(materialId, updates) {
 
     try {
         const id = typeof materialId === 'string' ? new ObjectId(materialId) : materialId;
+        const sanitizedUpdates = sanitizeMaterialPayload(updates);
         await materials.updateOne(
             { _id: id },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         const updated = await materials.findOne({ _id: id });
-        return { ...updated, _id: updated._id.toString() };
+        return normalizeMaterial(updated);
     } catch (error) {
+        const sanitizedUpdates = sanitizeMaterialPayload(updates);
         await materials.updateOne(
             { _id: materialId },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         const updated = await materials.findOne({ _id: materialId });
-        return { ...updated, _id: updated._id.toString() };
+        return normalizeMaterial(updated);
     }
 }
 
@@ -214,10 +320,7 @@ async function getAllEquipment(projectId) {
     const db = getDatabase();
     const equipment = db.collection('equipment');
     const results = await equipment.find({ projectId }).toArray();
-    return results.map(item => ({
-        ...item,
-        _id: item._id.toString()
-    }));
+    return results.map(normalizeEquipment);
 }
 
 async function createEquipment(equipmentData) {
@@ -225,13 +328,13 @@ async function createEquipment(equipmentData) {
     const equipment = db.collection('equipment');
 
     const newEquipment = {
-        ...equipmentData,
+        ...sanitizeEquipmentPayload(equipmentData),
         createdAt: new Date(),
         updatedAt: new Date()
     };
 
     const result = await equipment.insertOne(newEquipment);
-    return { ...newEquipment, _id: result.insertedId.toString() };
+    return normalizeEquipment({ ...newEquipment, _id: result.insertedId });
 }
 
 async function updateEquipment(equipmentId, updates) {
@@ -240,19 +343,21 @@ async function updateEquipment(equipmentId, updates) {
 
     try {
         const id = typeof equipmentId === 'string' ? new ObjectId(equipmentId) : equipmentId;
+        const sanitizedUpdates = sanitizeEquipmentPayload(updates);
         await equipment.updateOne(
             { _id: id },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         const updated = await equipment.findOne({ _id: id });
-        return { ...updated, _id: updated._id.toString() };
+        return normalizeEquipment(updated);
     } catch (error) {
+        const sanitizedUpdates = sanitizeEquipmentPayload(updates);
         await equipment.updateOne(
             { _id: equipmentId },
-            { $set: { ...updates, updatedAt: new Date() } }
+            { $set: { ...sanitizedUpdates, updatedAt: new Date() } }
         );
         const updated = await equipment.findOne({ _id: equipmentId });
-        return { ...updated, _id: updated._id.toString() };
+        return normalizeEquipment(updated);
     }
 }
 
@@ -273,7 +378,8 @@ async function deleteEquipment(equipmentId) {
 async function getAllExpenses(projectId) {
     const db = getDatabase();
     const expenses = db.collection('expenses');
-    return await expenses.find({ projectId }).toArray();
+    const results = await expenses.find({ projectId }).toArray();
+    return results.map(normalizeExpense);
 }
 
 async function createExpense(expenseData) {
@@ -282,11 +388,12 @@ async function createExpense(expenseData) {
 
     const newExpense = {
         ...expenseData,
+        amount: toNumber(expenseData.amount),
         createdAt: new Date()
     };
 
     const result = await expenses.insertOne(newExpense);
-    return { ...newExpense, _id: result.insertedId };
+    return normalizeExpense({ ...newExpense, _id: result.insertedId });
 }
 
 async function getFinancialSummary(projectId) {

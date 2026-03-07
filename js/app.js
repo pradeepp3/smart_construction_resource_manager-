@@ -12,6 +12,7 @@ async function navigateTo(viewName) {
     const viewContainer = document.getElementById('view-container');
     const sidebar = document.getElementById('sidebar');
     const topHeader = document.getElementById('top-header');
+    const mainContent = document.getElementById('main-content');
 
     // Update active nav button
     document.querySelectorAll('.nav-item').forEach(btn => {
@@ -31,9 +32,11 @@ async function navigateTo(viewName) {
         if (viewName === 'login') {
             if (sidebar) sidebar.style.display = 'none';
             if (topHeader) topHeader.style.display = 'none';
+            if (mainContent) mainContent.style.marginLeft = '0';
         } else {
             if (sidebar) sidebar.style.display = 'flex';
             if (topHeader) topHeader.style.display = 'flex';
+            if (mainContent) mainContent.style.marginLeft = 'var(--sidebar-w)';
 
             // Check if project is selected for project-specific views
             if (['dashboard', 'labour', 'materials', 'equipment', 'finance', 'electrician-payments'].includes(viewName)) {
@@ -152,8 +155,8 @@ async function loadDashboardView() {
                         <div class="widget-subtext"><span class="trend neutral" id="dashRemainingPct">0%</span>&nbsp; funds remaining</div>
                     </div>
                     <div class="chart-container" style="min-height:140px;">
-                        <canvas id="budgetDonut" width="140" height="140"></canvas>
-                        <div id="budgetDonutCenter" style="position:absolute;text-align:center;">
+                        <canvas id="budgetDonut"></canvas>
+                        <div id="budgetDonutCenter" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
                             <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Spent</div>
                             <div style="font-size:1.1rem;font-weight:700;font-family:var(--font-mono);color:var(--text-primary);" id="budgetSpentPct">0%</div>
                         </div>
@@ -161,7 +164,7 @@ async function loadDashboardView() {
                     <div class="progress-bar-container">
                         <div id="dashBudgetBar" class="progress-bar-fill" style="width:0%"></div>
                     </div>
-                    <div style="display:flex;gap:1.5rem;">
+                    <div style="display:flex;gap:1rem;flex-wrap:wrap;">
                         <div>
                             <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Labour</div>
                             <div style="font-weight:700;font-family:var(--font-mono);color:var(--brand);" id="dashLabourCost">₹0</div>
@@ -173,6 +176,10 @@ async function loadDashboardView() {
                         <div>
                             <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Equipment</div>
                             <div style="font-weight:700;font-family:var(--font-mono);color:var(--purple);" id="dashEquipCost">₹0</div>
+                        </div>
+                        <div>
+                            <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Other</div>
+                            <div style="font-weight:700;font-family:var(--font-mono);color:var(--teal);" id="dashOtherCost">₹0</div>
                         </div>
                     </div>
                 </div>
@@ -584,22 +591,31 @@ async function deleteElectricianPayment(paymentId) {
     }
 }
 
-function initializeDashboard() {
+async function initializeDashboard() {
     if (!AppState.currentProject) return;
 
     const p = AppState.currentProject;
-    const breakdown = p.budgetBreakdown || { labour: 0, materials: 0, equipment: 0, other: 0 };
-    const totalSpent = breakdown.labour + breakdown.materials + breakdown.equipment + breakdown.other;
     const totalBudget = p.budget || 0;
+
+    // Fetch actual financial summary from the database
+    let summary = { labourCost: 0, materialCost: 0, equipmentCost: 0, otherExpenses: 0, totalCost: 0 };
+    try {
+        const summaryRes = await window.api.finance.getSummary(p._id);
+        if (summaryRes.success) summary = normalizeFinancialSummary(summaryRes.data);
+    } catch (e) { console.error('Dashboard finance summary error:', e); }
+
+    const totalSpent = summary.totalCost;
     const remaining = totalBudget - totalSpent;
     const remainPct = totalBudget > 0 ? ((remaining / totalBudget) * 100).toFixed(1) : 0;
     const usePct = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
 
     // Animate budget total counter
     animateCounter('dashTotalBudget', totalBudget, true);
-    document.getElementById('dashLabourCost').textContent = formatCurrency(breakdown.labour);
-    document.getElementById('dashMaterialCost').textContent = formatCurrency(breakdown.materials);
-    document.getElementById('dashEquipCost').textContent = formatCurrency(breakdown.equipment);
+    document.getElementById('dashLabourCost').textContent = formatCurrency(summary.labourCost);
+    document.getElementById('dashMaterialCost').textContent = formatCurrency(summary.materialCost);
+    document.getElementById('dashEquipCost').textContent = formatCurrency(summary.equipmentCost);
+    const otherEl = document.getElementById('dashOtherCost');
+    if (otherEl) otherEl.textContent = formatCurrency(summary.otherExpenses);
 
     const pctEl = document.getElementById('dashRemainingPct');
     if (pctEl) {
@@ -620,52 +636,82 @@ function initializeDashboard() {
         }
     }, 200);
 
-    // Chart.js donut
-    renderBudgetDonut(breakdown, totalBudget);
+    // Chart.js donut with actual spending data
+    renderBudgetDonut(summary, totalBudget);
 
-    loadDashboardCounts(p._id);
+    loadDashboardCounts(p._id, summary, totalBudget);
 }
 
-function renderBudgetDonut(breakdown, totalBudget) {
+function renderBudgetDonut(summary, totalBudget) {
     const canvas = document.getElementById('budgetDonut');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    const labour = breakdown.labour || 0;
-    const materials = breakdown.materials || 0;
-    const equipment = breakdown.equipment || 0;
-    const other = breakdown.other || 0;
-    const spent = labour + materials + equipment + other;
+    const labour    = (summary && summary.labourCost)    || 0;
+    const materials = (summary && summary.materialCost)  || 0;
+    const equipment = (summary && summary.equipmentCost) || 0;
+    const other     = (summary && summary.otherExpenses) || 0;
+    const spent     = labour + materials + equipment + other;
     const remaining = Math.max(0, totalBudget - spent);
 
     if (window._budgetChart) { window._budgetChart.destroy(); }
+
+    // Palette aligned with dashboard legend colours
+    const COLOURS = {
+        labour:    '#F59E0B',
+        materials: '#3B82F6',
+        equipment: '#8B5CF6',
+        other:     '#14B8A6',
+        remaining: 'rgba(255,255,255,0.07)'
+    };
+
+    const hasSpend = spent > 0;
+    const chartData    = hasSpend
+        ? [labour, materials, equipment, other, remaining]
+        : (totalBudget > 0 ? [0, 0, 0, 0, totalBudget] : [1]);
+    const chartColors  = hasSpend
+        ? [COLOURS.labour, COLOURS.materials, COLOURS.equipment, COLOURS.other, COLOURS.remaining]
+        : [COLOURS.remaining];
 
     window._budgetChart = new Chart(canvas, {
         type: 'doughnut',
         data: {
             labels: ['Labour', 'Materials', 'Equipment', 'Other', 'Remaining'],
             datasets: [{
-                data: [labour, materials, equipment, other, remaining],
-                backgroundColor: [
-                    'rgba(245,158,11,0.9)',
-                    'rgba(59,130,246,0.9)',
-                    'rgba(139,92,246,0.9)',
-                    'rgba(20,184,166,0.9)',
-                    'rgba(255,255,255,0.08)'
-                ],
-                borderColor: 'rgba(17,17,24,0)',
-                borderWidth: 3,
-                hoverOffset: 6
+                data:            chartData,
+                backgroundColor: chartColors,
+                borderColor:     'transparent',
+                borderWidth:     0,
+                hoverOffset:     10,
+                spacing:         hasSpend ? 2 : 0
             }]
         },
         options: {
-            cutout: '72%',
-            responsive: false,
+            cutout: '74%',
+            responsive: true,
+            maintainAspectRatio: true,
+            layout: { padding: 6 },
             plugins: {
-                legend: { display: false }, tooltip: {
-                    callbacks: { label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` }
+                legend: { display: false },
+                tooltip: {
+                    enabled: totalBudget > 0 || hasSpend,
+                    backgroundColor: 'rgba(13,13,20,0.96)',
+                    titleColor:      '#F4F4F8',
+                    bodyColor:       '#9999B3',
+                    borderColor:     'rgba(255,255,255,0.10)',
+                    borderWidth:     1,
+                    padding:         10,
+                    cornerRadius:    8,
+                    callbacks: {
+                        label: (ctx) => {
+                            if (!hasSpend && totalBudget > 0) return ` Budget unspent: ${formatCurrency(totalBudget)}`;
+                            if (!hasSpend) return ' No cost data yet';
+                            const pct = totalBudget > 0 ? ` (${(ctx.raw / totalBudget * 100).toFixed(1)}%)` : '';
+                            return ` ${ctx.label}: ${formatCurrency(ctx.raw)}${pct}`;
+                        }
+                    }
                 }
             },
-            animation: { animateRotate: true, duration: 900 }
+            animation: { animateRotate: true, duration: 900, easing: 'easeOutQuart' }
         }
     });
 }
@@ -691,7 +737,12 @@ function animateCounter(elemId, target, isCurrency) {
 
 const avatarColors = ['av-1', 'av-2', 'av-3', 'av-4', 'av-5', 'av-6'];
 
-async function loadDashboardCounts(projectId) {
+async function loadDashboardCounts(projectId, summary, totalBudget) {
+    summary     = normalizeFinancialSummary(summary || { labourCost: 0, materialCost: 0, equipmentCost: 0, otherExpenses: 0, totalCost: 0 });
+    totalBudget = toNumber(totalBudget ?? (AppState.currentProject ? AppState.currentProject.budget : 0));
+
+    const notifications = [];
+
     try {
         const labourRes = await window.api.labour.getAll(projectId);
         if (labourRes.success) {
@@ -703,7 +754,7 @@ async function loadDashboardCounts(projectId) {
                     teamList.innerHTML = '<div class="text-muted text-center" style="padding:2rem 0;">No workers added yet</div>';
                 } else {
                     workers.slice(0, 5).forEach((w, i) => {
-                        const active = w.totalCost > 0 || w.category === 'Electrician';
+                        const active = toNumber(w.totalCost) > 0 || w.category === 'Electrician';
                         const avClass = avatarColors[i % avatarColors.length];
                         teamList.innerHTML += `
                             <div class="list-widget-item">
@@ -722,24 +773,58 @@ async function loadDashboardCounts(projectId) {
                     }
                 }
             }
+
+            // Notification: workers with no recorded cost
+            const idleWorkers = workers.filter(w => toNumber(w.totalCost) <= 0 && w.category !== 'Electrician');
+            if (idleWorkers.length > 0) {
+                notifications.push({ type: 'warning', icon: 'ph-hard-hat', title: 'Idle Workers', msg: `${idleWorkers.length} worker(s) have no recorded cost yet.` });
+            }
         }
 
         const matRes = await window.api.materials.getAll(projectId);
         if (matRes.success) {
             animateCounter('dashMaterialCount', matRes.data.length, false);
-            const lowStock = matRes.data.some(m => m.quantity < 10);
-            if (lowStock) document.getElementById('dashLowStockBadge').style.display = 'inline-flex';
+            const lowStockItems = matRes.data.filter(m => toNumber(m.quantity) < 10);
+            if (lowStockItems.length > 0) {
+                document.getElementById('dashLowStockBadge').style.display = 'inline-flex';
+                notifications.push({ type: 'warning', icon: 'ph-package', title: 'Low Stock Alert', msg: `${lowStockItems.length} material(s) have quantity below 10.` });
+            }
         }
 
         const eqRes = await window.api.equipment.getAll(projectId);
         if (eqRes.success) animateCounter('dashEquipmentCount', eqRes.data.length, false);
 
-        const alertVal = Math.floor(Math.random() * 5);
-        animateCounter('dashAlertCount', alertVal, false);
-        if (alertVal > 0) {
-            const badge = document.getElementById('notifBadge');
-            if (badge) { badge.textContent = alertVal; badge.style.display = 'flex'; }
+        // Budget-based notifications derived from real financial data
+        if (totalBudget > 0) {
+            const usedPct = (summary.totalCost / totalBudget) * 100;
+            if (usedPct >= 100) {
+                notifications.push({ type: 'danger', icon: 'ph-warning-octagon', title: 'Over Budget!', msg: `Spent ${formatCurrency(summary.totalCost)} — exceeded by ${formatCurrency(summary.totalCost - totalBudget)}.` });
+            } else if (usedPct >= 90) {
+                notifications.push({ type: 'danger', icon: 'ph-warning-circle', title: 'Budget Critical', msg: `${usedPct.toFixed(0)}% used — only ${formatCurrency(totalBudget - summary.totalCost)} remaining.` });
+            } else if (usedPct >= 75) {
+                notifications.push({ type: 'warning', icon: 'ph-chart-line-up', title: 'Budget Alert', msg: `${usedPct.toFixed(0)}% of budget consumed. Monitor spending carefully.` });
+            } else if (summary.totalCost === 0) {
+                notifications.push({ type: 'info', icon: 'ph-info', title: 'No Costs Recorded', msg: 'No expenses recorded yet for this project.' });
+            }
+        } else {
+            notifications.push({ type: 'info', icon: 'ph-currency-inr', title: 'No Budget Set', msg: 'Set a project budget in Finance to enable tracking.' });
         }
+
+        // Update alert count and notification badge
+        const alertVal = notifications.length;
+        animateCounter('dashAlertCount', alertVal, false);
+        const badge = document.getElementById('notifBadge');
+        if (badge) {
+            if (alertVal > 0) {
+                badge.textContent = alertVal > 9 ? '9+' : alertVal;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Store globally so the notification panel can read them
+        window._appNotifications = notifications;
 
     } catch (e) {
         console.error('Dashboard counts error:', e);
@@ -779,8 +864,7 @@ async function loadCurrentProject() {
     if (projectId) {
         const result = await window.api.projects.getById(projectId);
         if (result.success && result.data) {
-            AppState.currentProject = result.data;
-            updateProjectDisplay();
+            setCurrentProject(result.data);
         }
     }
 }
@@ -832,12 +916,39 @@ function showToast(message, type = 'info', duration = 3200) {
 // Legacy alias so existing code still works
 function showAlert(message, type = 'info') { showToast(message, type === 'error' ? 'danger' : type); }
 
+function toNumber(value, fallback = 0) {
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    return Number.isFinite(num) ? num : fallback;
+}
+
+function normalizeFinancialSummary(summary = {}) {
+    return {
+        labourCost: toNumber(summary.labourCost),
+        materialCost: toNumber(summary.materialCost),
+        equipmentCost: toNumber(summary.equipmentCost),
+        otherExpenses: toNumber(summary.otherExpenses),
+        totalCost: toNumber(summary.totalCost)
+    };
+}
+
+async function refreshCurrentProjectState(projectId = AppState.currentProject && AppState.currentProject._id) {
+    if (!projectId) return null;
+
+    const result = await window.api.projects.getById(projectId);
+    if (result.success && result.data) {
+        setCurrentProject(result.data);
+        return result.data;
+    }
+
+    return null;
+}
+
 // Format currency
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
         currency: 'INR'
-    }).format(amount);
+    }).format(toNumber(amount));
 }
 
 // Format date
@@ -847,6 +958,267 @@ function formatDate(date) {
         month: 'short',
         day: 'numeric'
     });
+}
+
+// ==========================================
+// GLOBAL SEARCH
+// ==========================================
+
+function initSearchBar() {
+    const searchInput = document.getElementById('globalSearch');
+    if (!searchInput) return;
+
+    // Ctrl+K shortcut
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+        if (e.key === 'Escape') { hideSearchDropdown(); searchInput.blur(); }
+    });
+
+    let debounce;
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        clearTimeout(debounce);
+        if (query.length < 2) { hideSearchDropdown(); return; }
+        debounce = setTimeout(() => performSearch(query), 300);
+    });
+
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim().length >= 2) showSearchDropdown();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-bar') && !e.target.closest('#searchDropdown')) {
+            hideSearchDropdown();
+        }
+    });
+}
+
+function showSearchDropdown() {
+    const d = document.getElementById('searchDropdown');
+    if (d) d.classList.add('active');
+}
+
+function hideSearchDropdown() {
+    const d = document.getElementById('searchDropdown');
+    if (d) d.classList.remove('active');
+}
+
+async function performSearch(query) {
+    if (!AppState.currentProject) {
+        renderSearchResults([], query, 'Select a project first to search within it.');
+        return;
+    }
+    const projectId = AppState.currentProject._id;
+    const q = query.toLowerCase();
+    const results = [];
+
+    try {
+        const [labourRes, matRes, eqRes] = await Promise.all([
+            window.api.labour.getAll(projectId),
+            window.api.materials.getAll(projectId),
+            window.api.equipment.getAll(projectId)
+        ]);
+
+        if (labourRes.success) {
+            labourRes.data
+                .filter(w => w.name.toLowerCase().includes(q) || (w.category || '').toLowerCase().includes(q))
+                .slice(0, 4)
+                .forEach(w => results.push({
+                    type: 'Labour', icon: 'ph-hard-hat', color: 'var(--brand)',
+                    title: w.name,
+                    sub: `${w.category || 'Worker'} — ${formatCurrency(toNumber(w.totalCost))}`,
+                    view: 'labour'
+                }));
+        }
+
+        if (matRes.success) {
+            matRes.data
+                .filter(m => m.name.toLowerCase().includes(q) || (m.category || '').toLowerCase().includes(q))
+                .slice(0, 4)
+                .forEach(m => results.push({
+                    type: 'Material', icon: 'ph-package', color: 'var(--blue)',
+                    title: m.name,
+                    sub: `${m.category || 'Material'} — Qty: ${toNumber(m.quantity)} ${m.unit || ''}`.trim(),
+                    view: 'materials'
+                }));
+        }
+
+        if (eqRes.success) {
+            eqRes.data
+                .filter(e => e.name.toLowerCase().includes(q) || (e.type || '').toLowerCase().includes(q))
+                .slice(0, 3)
+                .forEach(e => results.push({
+                    type: 'Equipment', icon: 'ph-truck', color: 'var(--purple)',
+                    title: e.name,
+                    sub: `${e.type || 'Equipment'} — ${formatCurrency(toNumber(e.totalCost))}`,
+                    view: 'equipment'
+                }));
+        }
+    } catch (err) { console.error('Search error:', err); }
+
+    renderSearchResults(results, query);
+}
+
+function renderSearchResults(results, query, message) {
+    let dropdown = document.getElementById('searchDropdown');
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = 'searchDropdown';
+        dropdown.className = 'search-dropdown';
+        document.body.appendChild(dropdown);
+    }
+
+    // Position below the search bar
+    const searchBar = document.querySelector('.search-bar');
+    if (searchBar) {
+        const rect = searchBar.getBoundingClientRect();
+        dropdown.style.top   = (rect.bottom + 6) + 'px';
+        dropdown.style.left  = rect.left + 'px';
+        dropdown.style.width = Math.max(rect.width, 340) + 'px';
+    }
+
+    if (message) {
+        dropdown.innerHTML = `<div class="search-dropdown-empty"><i class="ph ph-info"></i> ${message}</div>`;
+        dropdown.classList.add('active');
+        return;
+    }
+
+    if (results.length === 0) {
+        dropdown.innerHTML = `<div class="search-dropdown-empty"><i class="ph ph-magnifying-glass"></i> No results for "<strong>${escapeHtml(query)}</strong>"</div>`;
+        dropdown.classList.add('active');
+        return;
+    }
+
+    // Group by type
+    const grouped = {};
+    results.forEach(r => { (grouped[r.type] = grouped[r.type] || []).push(r); });
+
+    let html = '';
+    for (const [type, items] of Object.entries(grouped)) {
+        html += `<div class="search-group-label">${type}</div>`;
+        html += items.map(item => `
+            <div class="search-result-item" onclick="navigateTo('${item.view}'); hideSearchDropdown(); document.getElementById('globalSearch').value='';">
+                <div class="search-result-icon" style="background:${item.color}20; color:${item.color};">
+                    <i class="ph ${item.icon}"></i>
+                </div>
+                <div class="search-result-text">
+                    <div class="search-result-title">${escapeHtml(item.title)}</div>
+                    <div class="search-result-sub">${escapeHtml(item.sub)}</div>
+                </div>
+                <i class="ph ph-arrow-right" style="color:var(--text-muted); font-size:.8rem; flex-shrink:0;"></i>
+            </div>`).join('');
+    }
+
+    const total = results.length;
+    html += `<div class="search-dropdown-footer">${total} result(s) in <strong>${escapeHtml(AppState.currentProject?.name || 'project')}</strong></div>`;
+    dropdown.innerHTML = html;
+    dropdown.classList.add('active');
+}
+
+// ==========================================
+// NOTIFICATION PANEL
+// ==========================================
+
+function initNotificationPanel() {
+    const btn = document.getElementById('notifBtn');
+    if (!btn) return;
+
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleNotificationPanel();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#notifBtn') && !e.target.closest('#notifPanel')) {
+            hideNotificationPanel();
+        }
+    });
+}
+
+function hideNotificationPanel() {
+    const panel = document.getElementById('notifPanel');
+    if (panel) panel.classList.remove('active');
+}
+
+function toggleNotificationPanel() {
+    let panel = document.getElementById('notifPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'notifPanel';
+        panel.className = 'notif-panel';
+        document.body.appendChild(panel);
+    }
+
+    if (panel.classList.contains('active')) {
+        panel.classList.remove('active');
+        return;
+    }
+
+    // Position panel near the notification button
+    const btn = document.getElementById('notifBtn');
+    if (btn) {
+        const rect = btn.getBoundingClientRect();
+        panel.style.top   = (rect.bottom + 6) + 'px';
+        panel.style.right = (window.innerWidth - rect.right) + 'px';
+    }
+
+    renderNotificationPanel();
+    panel.classList.add('active');
+}
+
+function renderNotificationPanel() {
+    const panel = document.getElementById('notifPanel');
+    if (!panel) return;
+
+    const notifications = window._appNotifications || [];
+    const proj = AppState.currentProject;
+
+    const typeStyles = {
+        danger:  { color: 'var(--danger)',  bg: 'var(--danger-soft)',  icon: 'ph-warning-circle' },
+        warning: { color: 'var(--warning)', bg: 'var(--warning-soft)', icon: 'ph-warning' },
+        info:    { color: 'var(--info)',    bg: 'var(--info-soft)',    icon: 'ph-info' },
+        success: { color: 'var(--success)', bg: 'var(--success-soft)', icon: 'ph-check-circle' }
+    };
+
+    const now = new Date().toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+    const itemsHtml = notifications.length === 0
+        ? `<div class="notif-empty"><i class="ph ph-bell-slash"></i><p>All clear! No alerts right now.</p></div>`
+        : notifications.map(n => {
+            const s = typeStyles[n.type] || typeStyles.info;
+            return `
+                <div class="notif-item" style="border-left: 3px solid ${s.color};">
+                    <div class="notif-item-icon" style="color:${s.color}; background:${s.bg};">
+                        <i class="ph ${n.icon || s.icon}"></i>
+                    </div>
+                    <div class="notif-item-body">
+                        <div class="notif-item-title">${n.title}</div>
+                        <div class="notif-item-msg">${n.msg}</div>
+                    </div>
+                </div>`;
+        }).join('');
+
+    panel.innerHTML = `
+        <div class="notif-panel-header">
+            <span><i class="ph ph-bell"></i> Notifications</span>
+            <span class="notif-panel-time">${now}</span>
+        </div>
+        ${proj ? `<div class="notif-panel-project"><i class="ph ph-briefcase"></i> ${escapeHtml(proj.name)}</div>` : ''}
+        <div class="notif-panel-body">
+            ${itemsHtml}
+        </div>
+        <div class="notif-panel-footer">
+            <span>${notifications.length > 0 ? `${notifications.length} alert(s)` : 'No alerts'}</span>
+            <button onclick="hideNotificationPanel(); navigateTo('dashboard');"
+                    style="background:none;border:none;color:var(--brand);cursor:pointer;font-size:.8rem;font-family:var(--font-sans);">
+                View Dashboard <i class="ph ph-arrow-right"></i>
+            </button>
+        </div>
+    `;
 }
 
 // Initialize app
@@ -887,6 +1259,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (view) navigateTo(view);
         });
     });
+
+    // Initialize search bar and notification panel
+    initSearchBar();
+    initNotificationPanel();
 
     try {
         // Listen for database switches
@@ -955,6 +1331,9 @@ window.showAlert = showAlert;
 window.showToast = showToast;
 window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;
+window.toNumber = toNumber;
+window.normalizeFinancialSummary = normalizeFinancialSummary;
+window.refreshCurrentProjectState = refreshCurrentProjectState;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 window.toggleTheme = toggleTheme;
@@ -967,3 +1346,7 @@ window.deleteMember = deleteMember;
 window.showAddPaymentModal = showAddPaymentModal;
 window.savePayment = savePayment;
 window.deleteElectricianPayment = deleteElectricianPayment;
+// Search + Notification
+window.hideSearchDropdown = hideSearchDropdown;
+window.hideNotificationPanel = hideNotificationPanel;
+window.renderNotificationPanel = renderNotificationPanel;

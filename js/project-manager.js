@@ -6,6 +6,22 @@ async function loadProjectsView() {
     const result = await window.api.projects.getAll();
     if (result.success) { allProjects = result.data; } else { allProjects = []; }
 
+    const financialSummaries = {};
+    if (allProjects.length > 0) {
+        const summaryResults = await Promise.allSettled(
+            allProjects.map(project => window.api.finance.getSummary(project._id))
+        );
+
+        summaryResults.forEach((entry, index) => {
+            const projectId = allProjects[index]._id;
+            if (entry.status === 'fulfilled' && entry.value && entry.value.success) {
+                financialSummaries[projectId] = normalizeFinancialSummary(entry.value.data);
+            } else {
+                financialSummaries[projectId] = normalizeFinancialSummary();
+            }
+        });
+    }
+
     return `
         <div class="projects-container animate-fade-in">
             <div class="card-header" style="margin-bottom:1.5rem;">
@@ -20,7 +36,7 @@ async function loadProjectsView() {
                 </button>
             </div>
             <div class="grid grid-3" id="projectsGrid">
-                ${renderProjectCards()}
+                ${renderProjectCards(financialSummaries)}
             </div>
         </div>
 
@@ -93,7 +109,7 @@ async function loadProjectsView() {
     `;
 }
 
-function renderProjectCards() {
+function renderProjectCards(financialSummaries = {}) {
     if (allProjects.length === 0) {
         return `
             <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;">
@@ -121,9 +137,10 @@ function renderProjectCards() {
         const isSelected = AppState.currentProject && AppState.currentProject._id === project._id;
         const fallbackGrad = projectColors[idx % projectColors.length];
         const hasImage = project.image && project.image.trim().length > 0;
-        const budgetBreakdown = project.budgetBreakdown || {};
-        const spent = (budgetBreakdown.labour || 0) + (budgetBreakdown.materials || 0) + (budgetBreakdown.equipment || 0) + (budgetBreakdown.other || 0);
-        const pct = project.budget > 0 ? Math.min((spent / project.budget) * 100, 100) : 0;
+        const budget = toNumber(project.budget);
+        const summary = financialSummaries[project._id] || normalizeFinancialSummary();
+        const spent = toNumber(summary.totalCost);
+        const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
 
         const imgSection = hasImage
             ? `<div style="height:160px;overflow:hidden;border-radius:var(--r-lg) var(--r-lg) 0 0;position:relative;">
@@ -154,22 +171,25 @@ function renderProjectCards() {
                     </div>
                     <div style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;color:var(--text-secondary);">
                         <i class="ph ph-currency-inr" style="color:var(--success);"></i>
-                        <span style="font-family:var(--font-mono);font-weight:600;color:var(--success);">${formatCurrency(project.budget)}</span>
+                        <span style="font-family:var(--font-mono);font-weight:600;color:var(--success);">${formatCurrency(budget)}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;color:var(--text-muted);">
                         <i class="ph ph-calendar-blank" style="color:var(--info);"></i>
                         <span>${formatDate(project.startDate)}</span>
                     </div>
                 </div>
-                ${pct > 0 ? `
                 <div style="margin-top:.75rem;">
                     <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-muted);margin-bottom:.3rem;">
                         <span>Budget Used</span><span>${pct.toFixed(0)}%</span>
                     </div>
+                    <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-secondary);margin-bottom:.35rem;">
+                        <span>Spent: ${formatCurrency(spent)}</span>
+                        <span>${budget > 0 ? `of ${formatCurrency(budget)}` : 'No budget set'}</span>
+                    </div>
                     <div style="height:4px;background:var(--bg-hover);border-radius:var(--r-full);overflow:hidden;">
                         <div style="height:100%;width:${pct}%;background:${pct > 90 ? 'var(--danger)' : pct > 70 ? 'var(--warning)' : 'var(--brand)'};border-radius:var(--r-full);"></div>
                     </div>
-                </div>` : ''}
+                </div>
             </div>
         </div>`;
     }).join('');
