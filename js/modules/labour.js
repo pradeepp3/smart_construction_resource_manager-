@@ -669,14 +669,15 @@ function openElectricianPayments(workerId) {
 function showAttendanceModal() {
     const list = document.getElementById('attendanceList');
 
-    // Filter pertinent workers: Daily Wage Only AND (Mason or Helper)
-    const dailyWorkers = allWorkers.filter(w =>
-        w.wageType !== 'sqft' &&
-        ['Mason', 'Helper'].includes(w.category)
-    ).sort((a, b) => a.category.localeCompare(b.category));
+    const dailyWorkers = allWorkers
+        .filter(w => (w.wageType || 'daily') !== 'sqft')
+        .sort((a, b) => {
+            const categorySort = String(a.category || '').localeCompare(String(b.category || ''));
+            return categorySort !== 0 ? categorySort : String(a.name || '').localeCompare(String(b.name || ''));
+        });
 
     if (dailyWorkers.length === 0) {
-        list.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted);">No Masons or Helpers found.</div>`;
+        list.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted);">No daily-wage workers available for attendance.</div>`;
     } else {
         list.innerHTML = dailyWorkers.map(w => {
             return `

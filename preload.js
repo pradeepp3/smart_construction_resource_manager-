@@ -47,7 +47,9 @@ contextBridge.exposeInMainWorld('api', {
     finance: {
         getSummary: (projectId) => ipcRenderer.invoke('finance:getSummary', projectId),
         getExpenses: (projectId) => ipcRenderer.invoke('finance:getExpenses', projectId),
-        createExpense: (expenseData) => ipcRenderer.invoke('finance:createExpense', expenseData)
+        createExpense: (expenseData) => ipcRenderer.invoke('finance:createExpense', expenseData),
+        updateExpense: (expenseId, updates) => ipcRenderer.invoke('finance:updateExpense', expenseId, updates),
+        deleteExpense: (expenseId) => ipcRenderer.invoke('finance:deleteExpense', expenseId)
     },
 
     // Electrician Team Management

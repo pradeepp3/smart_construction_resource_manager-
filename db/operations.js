@@ -396,6 +396,39 @@ async function createExpense(expenseData) {
     return normalizeExpense({ ...newExpense, _id: result.insertedId });
 }
 
+async function updateExpense(expenseId, updates) {
+    const db = getDatabase();
+    const expenses = db.collection('expenses');
+    const sanitizedUpdates = {
+        ...updates,
+        amount: 'amount' in updates ? toNumber(updates.amount) : updates.amount,
+        updatedAt: new Date()
+    };
+
+    try {
+        const id = typeof expenseId === 'string' ? new ObjectId(expenseId) : expenseId;
+        await expenses.updateOne({ _id: id }, { $set: sanitizedUpdates });
+        const updated = await expenses.findOne({ _id: id });
+        return normalizeExpense(updated);
+    } catch (error) {
+        await expenses.updateOne({ _id: expenseId }, { $set: sanitizedUpdates });
+        const updated = await expenses.findOne({ _id: expenseId });
+        return normalizeExpense(updated);
+    }
+}
+
+async function deleteExpense(expenseId) {
+    const db = getDatabase();
+    const expenses = db.collection('expenses');
+
+    try {
+        const id = typeof expenseId === 'string' ? new ObjectId(expenseId) : expenseId;
+        await expenses.deleteOne({ _id: id });
+    } catch (error) {
+        await expenses.deleteOne({ _id: expenseId });
+    }
+}
+
 async function getFinancialSummary(projectId) {
     const db = getDatabase();
 
@@ -548,6 +581,8 @@ module.exports = {
     deleteEquipment,
     getAllExpenses,
     createExpense,
+    updateExpense,
+    deleteExpense,
     getFinancialSummary,
     getConfiguration,
     updateConfiguration,

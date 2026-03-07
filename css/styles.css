@@ -2281,6 +2281,152 @@ tbody tr:hover td {
     animation: fadeInUp .3s ease;
 }
 
+.empty-state-panel {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-muted);
+    border: 1px dashed var(--border-light);
+    border-radius: var(--r-lg);
+    background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent), var(--bg-card);
+}
+
+.empty-state-panel i {
+    display: block;
+    font-size: 2.4rem;
+    margin-bottom: 0.8rem;
+    opacity: 0.55;
+}
+
+.empty-state-panel h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+    font-size: 1.05rem;
+}
+
+.empty-state-panel p {
+    margin-bottom: 1rem;
+    font-size: 0.86rem;
+}
+
+.other-expenses-page {
+    animation: fadeInUp .3s ease;
+}
+
+.electrician-topbar {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.electrician-page-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.electrician-stat-card {
+    border-left-width: 4px;
+    border-left-style: solid;
+}
+
+.electrician-stat-blue {
+    border-left-color: var(--blue);
+}
+
+.electrician-stat-blue .stat-value {
+    color: var(--blue);
+}
+
+.electrician-stat-green {
+    border-left-color: var(--success);
+}
+
+.electrician-stat-green .stat-value {
+    color: var(--success);
+}
+
+.electrician-stat-amber {
+    border-left-color: var(--warning);
+}
+
+.electrician-stat-amber .stat-value {
+    color: var(--warning);
+}
+
+.electrician-member-card {
+    border-left: 4px solid var(--warning);
+}
+
+.electrician-member-header {
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.electrician-member-avatar {
+    width: 42px;
+    height: 42px;
+    background: var(--warning);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #000;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.electrician-member-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.electrician-member-role {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.electrician-member-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.electrician-member-total {
+    text-align: right;
+    min-width: 90px;
+}
+
+.electrician-member-total-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.electrician-member-total-value {
+    font-weight: 700;
+    color: var(--success);
+    font-size: 1.05rem;
+}
+
+@media (max-width: 780px) {
+    .electrician-member-actions {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+    }
+
+    .electrician-member-total {
+        text-align: left;
+    }
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;

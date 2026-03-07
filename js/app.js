@@ -39,7 +39,7 @@ async function navigateTo(viewName) {
             if (mainContent) mainContent.style.marginLeft = 'var(--sidebar-w)';
 
             // Check if project is selected for project-specific views
-            if (['dashboard', 'labour', 'materials', 'equipment', 'finance', 'electrician-payments'].includes(viewName)) {
+            if (['dashboard', 'labour', 'materials', 'equipment', 'other-expenses', 'finance', 'electrician-payments'].includes(viewName)) {
                 if (!AppState.currentProject) {
                     navigateTo('projects');
                     return;
@@ -77,6 +77,9 @@ async function navigateTo(viewName) {
                 break;
             case 'equipment':
                 content = await loadEquipmentView();
+                break;
+            case 'other-expenses':
+                content = await loadOtherExpensesView();
                 break;
             case 'finance':
                 content = await loadFinanceView();
@@ -124,6 +127,9 @@ function initializeCurrentView(viewName) {
             break;
         case 'equipment':
             initializeEquipment();
+            break;
+        case 'other-expenses':
+            initializeOtherExpenses();
             break;
         case 'finance':
             initializeFinance();
@@ -304,9 +310,10 @@ async function loadElectricianPaymentsView() {
     }
 
     const memberSections = members.length === 0 ? `
-        <div style="text-align: center; padding: 4rem; color: var(--text-muted); border: 2px dashed var(--border); border-radius: var(--radius-lg); margin-top: 1.5rem;">
-            <i class="ph ph-users" style="font-size: 3rem; opacity: 0.4; display: block; margin-bottom: 1rem;"></i>
-            <p style="font-size: 1rem; margin-bottom: 1rem;">No team members added yet.</p>
+        <div class="empty-state-panel" style="margin-top:1.5rem;">
+            <i class="ph ph-users"></i>
+            <h3>No team members added yet</h3>
+            <p>Add the electrician crew members here and track weekly payments clearly.</p>
             <button class="btn btn-primary" onclick="showAddMemberModal()">
                 <i class="ph ph-plus"></i> Add First Member
             </button>
@@ -315,7 +322,7 @@ async function loadElectricianPaymentsView() {
             const payments = memberPayments[member._id] || [];
             const memberTotal = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
             const paymentRows = payments.length === 0
-                ? `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 1.5rem;">No payments yet</td></tr>`
+                ? `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding: 1.5rem;">No payments yet</td></tr>`
                 : payments.map((p, idx) => `
                     <tr>
                         <td style="color:var(--text-muted); font-size:0.85rem;">${idx + 1}</td>
@@ -331,21 +338,21 @@ async function loadElectricianPaymentsView() {
                     </tr>`).join('');
 
             return `
-            <div class="card mt-2" style="border-left: 4px solid var(--warning);">
-                <div class="card-header" style="padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
-                    <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <div style="width:38px; height:38px; background:var(--warning); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#000; font-size:1rem;">
+            <div class="card mt-2 electrician-member-card">
+                <div class="card-header electrician-member-header">
+                    <div style="display:flex; align-items:center; gap:0.75rem; min-width:0;">
+                        <div class="electrician-member-avatar">
                             ${escapeHtml(member.name.charAt(0).toUpperCase())}
                         </div>
-                        <div>
-                            <div style="font-weight:700; font-size:1rem; color:var(--text-primary);">${escapeHtml(member.name)}</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">${member.role ? `<i class="ph ph-wrench"></i> ${escapeHtml(member.role)}` : '<i class="ph ph-lightning"></i> Electrician'}</div>
+                        <div style="min-width:0;">
+                            <div class="electrician-member-name">${escapeHtml(member.name)}</div>
+                            <div class="electrician-member-role">${member.role ? `<i class="ph ph-wrench"></i> ${escapeHtml(member.role)}` : '<i class="ph ph-lightning"></i> Electrician'}</div>
                         </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap: 0.75rem;">
-                        <div style="text-align:right;">
-                            <div style="font-size:0.75rem; color:var(--text-muted);">Total Paid</div>
-                            <div style="font-weight:700; color:var(--success); font-size:1.1rem;">${formatCurrency(memberTotal)}</div>
+                    <div class="electrician-member-actions">
+                        <div class="electrician-member-total">
+                            <div class="electrician-member-total-label">Total Paid</div>
+                            <div class="electrician-member-total-value">${formatCurrency(memberTotal)}</div>
                         </div>
                         <button class="btn btn-sm btn-primary" onclick="showAddPaymentModal('${member._id}', '${escapeHtml(member.name)}')"
                                 title="Add weekly payment for ${escapeHtml(member.name)}">
@@ -380,17 +387,17 @@ async function loadElectricianPaymentsView() {
     return `
         <div class="electrician-payments-page">
             <!-- Back + Header -->
-            <div class="card-header" style="margin-bottom:1.5rem;">
-                <div style="display:flex; align-items:center; gap:1rem;">
+            <div class="electrician-topbar card-header" style="margin-bottom:1.5rem;">
+                <div style="display:flex; align-items:center; gap:1rem; min-width:0;">
                     <button class="btn btn-outline btn-sm" onclick="navigateTo('labour')">
                         <i class="ph ph-arrow-left"></i> Back
                     </button>
-                    <div>
+                    <div style="min-width:0;">
                         <h2 class="card-title" style="margin-bottom:0.15rem;">
                             <i class="ph ph-lightning" style="color:var(--warning);"></i>
                             ${escapeHtml(worker.name)} — Team Payments
                         </h2>
-                        <div style="font-size:0.85rem; color:var(--text-muted);">
+                        <div class="electrician-page-subtitle">
                             <i class="ph ph-phone"></i> ${escapeHtml(worker.phone)} &nbsp;&bull;&nbsp; Electrician Contractor
                         </div>
                     </div>
@@ -402,19 +409,19 @@ async function loadElectricianPaymentsView() {
 
             <!-- Grand Total Summary -->
             <div class="grid grid-3 gap" style="margin-bottom:1.5rem;">
-                <div class="stat-card" style="border-left:4px solid var(--accent-blue);">
+                <div class="stat-card electrician-stat-card electrician-stat-blue">
                     <div class="stat-label"><i class="ph ph-users"></i> Team Members</div>
-                    <div class="stat-value" style="color:var(--accent-blue); font-size:2rem;">${members.length}</div>
+                    <div class="stat-value" style="font-size:2rem;">${members.length}</div>
                     <div class="stat-label">Active workers</div>
                 </div>
-                <div class="stat-card" style="border-left:4px solid var(--success);">
+                <div class="stat-card electrician-stat-card electrician-stat-green">
                     <div class="stat-label"><i class="ph ph-currency-inr"></i> Total Paid (All Members)</div>
-                    <div class="stat-value" style="color:var(--success); font-size:1.6rem;">${formatCurrency(grandTotal)}</div>
+                    <div class="stat-value" style="font-size:1.6rem;">${formatCurrency(grandTotal)}</div>
                     <div class="stat-label">Across all weeks</div>
                 </div>
-                <div class="stat-card" style="border-left:4px solid var(--warning);">
+                <div class="stat-card electrician-stat-card electrician-stat-amber">
                     <div class="stat-label"><i class="ph ph-calendar"></i> Total Weeks Recorded</div>
-                    <div class="stat-value" style="color:var(--warning); font-size:2rem;">
+                    <div class="stat-value" style="font-size:2rem;">
                         ${Object.values(memberPayments).reduce((sum, arr) => sum + arr.length, 0)}
                     </div>
                     <div class="stat-label">Payment entries</div>
@@ -1017,10 +1024,11 @@ async function performSearch(query) {
     const results = [];
 
     try {
-        const [labourRes, matRes, eqRes] = await Promise.all([
+        const [labourRes, matRes, eqRes, expenseRes] = await Promise.all([
             window.api.labour.getAll(projectId),
             window.api.materials.getAll(projectId),
-            window.api.equipment.getAll(projectId)
+            window.api.equipment.getAll(projectId),
+            window.api.finance.getExpenses(projectId)
         ]);
 
         if (labourRes.success) {
@@ -1056,6 +1064,22 @@ async function performSearch(query) {
                     title: e.name,
                     sub: `${e.type || 'Equipment'} — ${formatCurrency(toNumber(e.totalCost))}`,
                     view: 'equipment'
+                }));
+        }
+
+        if (expenseRes.success) {
+            expenseRes.data
+                .filter(expense =>
+                    String(expense.title || '').toLowerCase().includes(q) ||
+                    String(expense.category || '').toLowerCase().includes(q) ||
+                    String(expense.vendor || '').toLowerCase().includes(q)
+                )
+                .slice(0, 4)
+                .forEach(expense => results.push({
+                    type: 'Other Expense', icon: 'ph-receipt', color: 'var(--teal)',
+                    title: expense.title || 'Expense',
+                    sub: `${expense.category || 'Miscellaneous'} — ${formatCurrency(toNumber(expense.amount))}`,
+                    view: 'other-expenses'
                 }));
         }
     } catch (err) { console.error('Search error:', err); }

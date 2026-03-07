@@ -387,6 +387,24 @@ ipcMain.handle('finance:createExpense', async (event, expenseData) => {
   }
 });
 
+ipcMain.handle('finance:updateExpense', async (event, expenseId, updates) => {
+  try {
+    const expense = await dbOperations.updateExpense(expenseId, updates);
+    return { success: true, data: expense };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('finance:deleteExpense', async (event, expenseId) => {
+  try {
+    await dbOperations.deleteExpense(expenseId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
 // Electrician Payment handlers
 // Electrician Member handlers
 ipcMain.handle('electrician:getMembers', async (event, workerId) => {
