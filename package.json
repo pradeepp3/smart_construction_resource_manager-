@@ -21,7 +21,7 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^6.0.0",
     "mongodb": "^6.3.0"
   },
   "devDependencies": {

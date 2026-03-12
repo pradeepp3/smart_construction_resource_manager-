@@ -2,7 +2,7 @@
 
 let allWorkers = [];
 let currentCategory = 'All';
-const workerCategories = ['Masonry', 'Centring', 'Concrete Team', 'Electrical & plumbing', 'Tiles', 'Painting', 'Polish', 'Others'];
+const workerCategories = ['Mason', 'Helper', 'Electrician', 'Carpenter'];
 
 // Helper: Escape HTML (may already be global, but safe to redefine)
 function escapeHtml(str) {
@@ -15,13 +15,7 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-async function loadLabourView(subCategory) {
-    if (subCategory !== undefined && subCategory !== null) {
-        currentCategory = subCategory;
-    } else if (subCategory === null && window.event && window.event.target && window.event.target.dataset.view === 'labour') {
-        currentCategory = 'All';
-    }
-
+async function loadLabourView() {
     if (!AppState.currentProject) {
         return `
             <div class="alert alert-warning">
@@ -39,90 +33,10 @@ async function loadLabourView(subCategory) {
         allWorkers = [];
     }
 
-    let categoryFiltersHtml = '';
-    
-    if (currentCategory === 'All') {
-        categoryFiltersHtml = `
-            <div class="grid grid-4 gap" style="margin-bottom: 1.5rem;">
-                <div class="stat-card active-filter" 
-                     onclick="switchCategory('All')" 
-                     style="cursor: pointer; border: 2px solid var(--primary); transition: transform 0.2s;">
-                    <div class="flex-between">
-                        <div class="stat-label">Total Workforce</div>
-                        <i class="ph ph-users-three" style="font-size: 1.5rem; color: var(--primary);"></i>
-                    </div>
-                    <div class="stat-value">${allWorkers.length}</div>
-                    <div class="stat-label" style="font-size: 0.75rem;">Across all categories</div>
-                </div>
-
-                ${workerCategories.map(cat => {
-                    const count = allWorkers.filter(w => w.category === cat).length;
-                    const isActive = currentCategory === cat;
-                    let icon = 'ph-hard-hat';
-                    if (cat === 'Masonry') icon = 'ph-wall';
-                    if (cat === 'Electrical & plumbing') icon = 'ph-lightning';
-                    if (cat === 'Centring') icon = 'ph-frame-corners';
-                    if (cat === 'Concrete Team') icon = 'ph-truck';
-
-                    return `
-                        <div class="stat-card ${isActive ? 'active-filter' : ''}" 
-                             onclick="switchCategory('${cat}')"
-                             style="cursor: pointer; border: ${isActive ? '2px solid var(--primary)' : '1px solid var(--border)'}; position: relative; overflow: hidden;">
-                            <div class="flex-between">
-                                <div class="stat-label">${cat}</div>
-                                <i class="ph ${icon}" style="font-size: 1.5rem; color: var(--text-muted);"></i>
-                            </div>
-                            <div class="stat-value">${count}</div>
-                            <div style="height: 4px; width: 100%; background: var(--bg-hover); margin-top: 0.5rem; border-radius: 2px;">
-                                <div style="height: 100%; width: ${(count / (allWorkers.length || 1) * 100)}%; background: ${isActive ? 'var(--primary)' : 'var(--text-muted)'};">
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-    } else {
-        const catWorkers = allWorkers.filter(w => w.category === currentCategory);
-        let icon = 'ph-hard-hat';
-        if (currentCategory === 'Masonry') icon = 'ph-wall';
-        if (currentCategory === 'Electrical & plumbing') icon = 'ph-lightning';
-        if (currentCategory === 'Centring') icon = 'ph-frame-corners';
-        if (currentCategory === 'Concrete Team') icon = 'ph-truck';
-        
-        const totalCost = catWorkers.reduce((sum, w) => {
-            const cost = w.wageType === 'sqft'
-                ? toNumber(w.sqftRate) * toNumber(w.sqftArea)
-                : toNumber(w.dailyWage) * toNumber(w.daysWorked);
-            return sum + cost;
-        }, 0);
-
-        categoryFiltersHtml = `
-            <div class="grid grid-3 gap" style="margin-bottom: 1.5rem;">
-                <div class="stat-card" style="border: 1px solid var(--border);">
-                    <div class="flex-between">
-                        <div class="stat-label">Total ${currentCategory} Workforce</div>
-                        <i class="ph ${icon}" style="font-size: 1.5rem; color: var(--text-muted);"></i>
-                    </div>
-                    <div class="stat-value">${catWorkers.length}</div>
-                    <div class="stat-label" style="font-size: 0.75rem;">Active in this category</div>
-                </div>
-                <div class="stat-card" style="border: 1px solid var(--border);">
-                    <div class="flex-between">
-                        <div class="stat-label">Category Expenditure</div>
-                        <i class="ph ph-currency-inr" style="font-size: 1.5rem; color: var(--text-muted);"></i>
-                    </div>
-                    <div class="stat-value text-expense">${formatCurrency(totalCost)}</div>
-                    <div class="stat-label" style="font-size: 0.75rem;">Total cost allocated</div>
-                </div>
-            </div>
-        `;
-    }
-
     return `
         <div class="labour-container">
             <div class="card-header">
-                <h2 class="card-title"><i class="ph ph-hard-hat"></i> ${currentCategory !== 'All' ? currentCategory + ' Management' : 'Labour Management'}</h2>
+                <h2 class="card-title"><i class="ph ph-hard-hat"></i> Labour Management</h2>
                 <div class="flex gap-sm">
                     <button class="btn btn-outline" onclick="showAttendanceModal()">
                         <i class="ph ph-check-square"></i> Mark Attendance
@@ -133,7 +47,45 @@ async function loadLabourView(subCategory) {
                 </div>
             </div>
             
-            ${categoryFiltersHtml}
+            <!-- Interactive Category Filters -->
+            <div class="grid grid-4 gap" style="margin-bottom: 1.5rem;">
+                <div class="stat-card ${currentCategory === 'All' ? 'active-filter' : ''}" 
+                     onclick="switchCategory('All')" 
+                     style="cursor: pointer; border: ${currentCategory === 'All' ? '2px solid var(--primary)' : '1px solid var(--border)'}; transition: transform 0.2s;">
+                    <div class="flex-between">
+                        <div class="stat-label">Total Workforce</div>
+                        <i class="ph ph-users-three" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    </div>
+                    <div class="stat-value">${allWorkers.length}</div>
+                    <div class="stat-label" style="font-size: 0.75rem;">Across all categories</div>
+                </div>
+
+                ${workerCategories.map(cat => {
+        const count = allWorkers.filter(w => w.category === cat).length;
+        const isActive = currentCategory === cat;
+        let icon = 'ph-hard-hat';
+        if (cat === 'Mason') icon = 'ph-wall';
+        if (cat === 'Electrician') icon = 'ph-lightning';
+        if (cat === 'Carpenter') icon = 'ph-hammer';
+        if (cat === 'Helper') icon = 'ph-hand-palm';
+
+        return `
+                    <div class="stat-card ${isActive ? 'active-filter' : ''}" 
+                         onclick="switchCategory('${cat}')"
+                         style="cursor: pointer; border: ${isActive ? '2px solid var(--primary)' : '1px solid var(--border)'}; position: relative; overflow: hidden;">
+                        <div class="flex-between">
+                            <div class="stat-label">${cat}s</div>
+                            <i class="ph ${icon}" style="font-size: 1.5rem; color: var(--text-muted);"></i>
+                        </div>
+                        <div class="stat-value">${count}</div>
+                        <div style="height: 4px; width: 100%; background: var(--bg-hover); margin-top: 0.5rem; border-radius: 2px;">
+                            <div style="height: 100%; width: ${(count / (allWorkers.length || 1) * 100)}%; background: ${isActive ? 'var(--primary)' : 'var(--text-muted)'};">
+                            </div>
+                        </div>
+                    </div>
+                    `;
+    }).join('')}
+            </div>
             
             <!-- Workers List -->
             <div class="card mt-1">
@@ -143,8 +95,12 @@ async function loadLabourView(subCategory) {
                     </div>
                 </div>
             </div>
+            
+            <!-- Cost Summary -->
+            <div class="grid grid-4 mt-2">
+                ${renderCategoryCostSummary()}
+            </div>
         </div>
-
         
         <!-- Add/Edit Worker Modal -->
         <div id="workerModal" class="modal">
@@ -177,7 +133,6 @@ async function loadLabourView(subCategory) {
                             <select id="workerPaymentType" class="form-select" onchange="togglePaymentFields()">
                                 <option value="daily">Daily Wage</option>
                                 <option value="sqft">Sq. Feet Basis</option>
-                                <option value="lumpsum">Lumpsum (Concrete)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -210,49 +165,6 @@ async function loadLabourView(subCategory) {
                         </div>
                     </div>
 
-                    <!-- Lumpsum Fields -->
-                    <div id="lumpsumFields" class="grid grid-2 gap" style="display: none;">
-                        <div class="form-group">
-                            <label class="form-label">Total Amount (₹)</label>
-                            <input type="number" id="workerLumpsumAmount" class="form-input" step="0.01" />
-                        </div>
-                    </div>
-
-                    <!-- Dynamic Category Fields -->
-                    <div id="dynamicCategoryFields" class="grid grid-2 gap" style="display: none; background: var(--bg-hover); padding: 1rem; border-radius: var(--r-md); margin-bottom: 1rem;">
-                        <!-- Masonry Specific -->
-                        <div class="form-group masonry-only" style="display: none;">
-                            <label class="form-label">Methri Name / Contractor</label>
-                            <input type="text" id="workerMethriName" class="form-input" />
-                        </div>
-                        <div class="form-group masonry-only" style="display: none;">
-                            <label class="form-label">Men Helpers</label>
-                            <input type="number" id="workerMenHelpers" class="form-input" min="0" value="0" />
-                        </div>
-                        <div class="form-group masonry-only" style="display: none;">
-                            <label class="form-label">Women Helpers</label>
-                            <input type="number" id="workerWomenHelpers" class="form-input" min="0" value="0" />
-                        </div>
-                        
-                        <!-- Concrete Team Specific -->
-                        <div class="form-group concrete-only" style="display: none;">
-                            <label class="form-label">Men Shifts</label>
-                            <input type="number" id="workerMenShifts" class="form-input" min="0" value="0" />
-                        </div>
-                        <div class="form-group concrete-only" style="display: none;">
-                            <label class="form-label">Women Shifts</label>
-                            <input type="number" id="workerWomenShifts" class="form-input" min="0" value="0" />
-                        </div>
-                        
-                        <!-- Tiles / Electrical Specific -->
-                        <div class="form-group role-only" style="display: none;">
-                            <label class="form-label">Sub-Role</label>
-                            <select id="workerScopeRole" class="form-select">
-                                <option value="Main/Mason">Main/Mason</option>
-                                <option value="Helper">Helper</option>
-                            </select>
-                        </div>
-                    </div>
 
                     <div class="form-group">
                          <label class="form-label">Tools Assigned (comma-separated)</label>
@@ -363,8 +275,8 @@ function renderWorkersList() {
                     ${categoryWorkers.map(worker => {
         const isDaily = worker.wageType !== 'sqft';
         const totalCost = isDaily
-            ? (worker.dailyWage || 0) * (worker.daysWorked || 0)
-            : (worker.sqftRate || 0) * (worker.sqftArea || 0);
+            ? toNumber(worker.dailyWage) * toNumber(worker.daysWorked)
+            : toNumber(worker.sqftRate) * toNumber(worker.sqftArea);
 
         const wageDisplay = isDaily
             ? `${formatCurrency(worker.dailyWage)}<span style="font-size:0.7em; color:var(--text-muted)">/day</span>`
@@ -438,8 +350,8 @@ function renderCategoryCostSummary() {
         const totalWorkers = categoryWorkers.length;
         const totalCost = categoryWorkers.reduce((sum, w) => {
             const cost = w.wageType === 'sqft'
-                ? (w.sqftRate || 0) * (w.sqftArea || 0)
-                : (w.dailyWage || 0) * (w.daysWorked || 0);
+                ? toNumber(w.sqftRate) * toNumber(w.sqftArea)
+                : toNumber(w.dailyWage) * toNumber(w.daysWorked);
             return sum + cost;
         }, 0);
 
@@ -569,22 +481,6 @@ async function editWorker(workerId) {
     document.getElementById('workerSqftRate').value = worker.sqftRate || '';
     document.getElementById('workerSqftArea').value = worker.sqftArea || 0;
 
-    // Dynamic Category Fields
-    const methriNameField = document.getElementById('workerMethriName');
-    if (methriNameField) methriNameField.value = worker.methriName || '';
-    const menHelpersField = document.getElementById('workerMenHelpers');
-    if (menHelpersField) menHelpersField.value = worker.menHelpers || 0;
-    const womenHelpersField = document.getElementById('workerWomenHelpers');
-    if (womenHelpersField) womenHelpersField.value = worker.womenHelpers || 0;
-    const menShiftsField = document.getElementById('workerMenShifts');
-    if (menShiftsField) menShiftsField.value = worker.menShifts || 0;
-    const womenShiftsField = document.getElementById('workerWomenShifts');
-    if (womenShiftsField) womenShiftsField.value = worker.womenShifts || 0;
-    const lumpsumAmountField = document.getElementById('workerLumpsumAmount');
-    if (lumpsumAmountField) lumpsumAmountField.value = worker.totalCost || 0;
-    const scopeRoleField = document.getElementById('workerScopeRole');
-    if (scopeRoleField) scopeRoleField.value = worker.subRole || 'Main/Mason';
-
     // Toggle visibility based on type
     togglePaymentFields();
     toggleCategoryFields();
@@ -593,7 +489,7 @@ async function editWorker(workerId) {
     const capitalField = document.getElementById('workerTotalCapital');
     if (capitalField) capitalField.value = worker.totalCapital || 0;
 
-    document.getElementById('workerTools').value = worker.tools && Array.isArray(worker.tools) ? worker.tools.join(', ') : '';
+    document.getElementById('workerTools').value = worker.tools ? worker.tools.join(', ') : '';
     document.getElementById('workerNotes').value = worker.notes || '';
 
     showModal('workerModal');
@@ -636,7 +532,7 @@ async function handleSaveWorker() {
                 return;
             }
             totalCost = dailyWage * daysWorked;
-        } else if (paymentType === 'sqft') {
+        } else {
             sqftRate = parseFloat(document.getElementById('workerSqftRate').value);
             sqftArea = parseFloat(document.getElementById('workerSqftArea').value) || 0;
 
@@ -646,29 +542,10 @@ async function handleSaveWorker() {
                 return;
             }
             totalCost = sqftRate * sqftArea;
-        } else if (paymentType === 'lumpsum') {
-            totalCost = parseFloat(document.getElementById('workerLumpsumAmount').value) || 0;
-            if (totalCost <= 0) {
-                 showAlert('Please enter a valid lumpsum amount', 'warning');
-                 document.getElementById('workerLumpsumAmount').focus();
-                 return;
-            }
         }
 
         const toolsInput = document.getElementById('workerTools').value;
         const tools = toolsInput ? toolsInput.split(',').map(t => t.trim()).filter(t => t) : [];
-
-        let dynamicData = {};
-        if (category === 'Masonry') {
-           dynamicData.methriName = document.getElementById('workerMethriName').value.trim();
-           dynamicData.menHelpers = parseInt(document.getElementById('workerMenHelpers').value) || 0;
-           dynamicData.womenHelpers = parseInt(document.getElementById('workerWomenHelpers').value) || 0;
-        } else if (category === 'Concrete Team') {
-           dynamicData.menShifts = parseInt(document.getElementById('workerMenShifts').value) || 0;
-           dynamicData.womenShifts = parseInt(document.getElementById('workerWomenShifts').value) || 0;
-        } else if (category === 'Tiles' || category === 'Electrical & plumbing') {
-           dynamicData.subRole = document.getElementById('workerScopeRole').value;
-        }
 
 
         const workerData = {
@@ -683,8 +560,7 @@ async function handleSaveWorker() {
             sqftArea: sqftArea,
             totalCost: totalCost,
             tools: tools,
-            notes: document.getElementById('workerNotes').value.trim(),
-            ...dynamicData
+            notes: document.getElementById('workerNotes').value.trim()
         };
 
         showLoading();
@@ -755,59 +631,30 @@ function togglePaymentFields() {
     const type = document.getElementById('workerPaymentType').value;
     const wageFields = document.getElementById('wageFields');
     const sqftFields = document.getElementById('sqftFields');
-    const lumpsumFields = document.getElementById('lumpsumFields');
 
-    if (wageFields) wageFields.style.display = 'none';
-    if (sqftFields) sqftFields.style.display = 'none';
-    if (lumpsumFields) lumpsumFields.style.display = 'none';
-
-    const wWage = document.getElementById('workerWage');
-    const wRate = document.getElementById('workerSqftRate');
-    const wLump = document.getElementById('workerLumpsumAmount');
-    if (wWage) wWage.required = false;
-    if (wRate) wRate.required = false;
-    if (wLump) wLump.required = false;
+    if (!wageFields || !sqftFields) return;
 
     if (type === 'daily') {
-        if (wageFields) wageFields.style.display = 'grid';
+        wageFields.style.display = 'grid';
+        sqftFields.style.display = 'none';
+
+        const wWage = document.getElementById('workerWage');
+        const wRate = document.getElementById('workerSqftRate');
         if (wWage) wWage.required = true;
-    } else if (type === 'sqft') {
-        if (sqftFields) sqftFields.style.display = 'grid';
+        if (wRate) wRate.required = false;
+    } else {
+        wageFields.style.display = 'none';
+        sqftFields.style.display = 'grid';
+
+        const wWage = document.getElementById('workerWage');
+        const wRate = document.getElementById('workerSqftRate');
+        if (wWage) wWage.required = false;
         if (wRate) wRate.required = true;
-    } else if (type === 'lumpsum') {
-        if (lumpsumFields) lumpsumFields.style.display = 'grid';
-        if (wLump) wLump.required = true;
     }
 }
 
 function toggleCategoryFields() {
-    const category = document.getElementById('workerCategory').value;
-    const dynamicContainer = document.getElementById('dynamicCategoryFields');
-    
-    // Hide all first
-    document.querySelectorAll('.masonry-only').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.concrete-only').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.role-only').forEach(el => el.style.display = 'none');
-    
-    let showContainer = false;
-
-    if (category === 'Masonry') {
-        document.querySelectorAll('.masonry-only').forEach(el => el.style.display = 'block');
-        showContainer = true;
-    } else if (category === 'Concrete Team') {
-        document.querySelectorAll('.concrete-only').forEach(el => el.style.display = 'block');
-        showContainer = true;
-        // Concrete team usually has lumpsum
-        document.getElementById('workerPaymentType').value = 'lumpsum';
-        togglePaymentFields();
-    } else if (category === 'Tiles' || category === 'Electrical & plumbing') {
-        document.querySelectorAll('.role-only').forEach(el => el.style.display = 'block');
-        showContainer = true;
-    }
-
-    if (dynamicContainer) {
-        dynamicContainer.style.display = showContainer ? 'block' : 'none';
-    }
+    // No extra fields needed based on category (totalCapital removed)
 }
 
 // Navigate to electrician payment page
@@ -822,14 +669,15 @@ function openElectricianPayments(workerId) {
 function showAttendanceModal() {
     const list = document.getElementById('attendanceList');
 
-    // Filter pertinent workers: Daily Wage Only AND (Mason or Helper)
-    const dailyWorkers = allWorkers.filter(w =>
-        w.wageType !== 'sqft' &&
-        ['Mason', 'Helper'].includes(w.category)
-    ).sort((a, b) => a.category.localeCompare(b.category));
+    const dailyWorkers = allWorkers
+        .filter(w => (w.wageType || 'daily') !== 'sqft')
+        .sort((a, b) => {
+            const categorySort = String(a.category || '').localeCompare(String(b.category || ''));
+            return categorySort !== 0 ? categorySort : String(a.name || '').localeCompare(String(b.name || ''));
+        });
 
     if (dailyWorkers.length === 0) {
-        list.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted);">No Masons or Helpers found.</div>`;
+        list.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted);">No daily-wage workers available for attendance.</div>`;
     } else {
         list.innerHTML = dailyWorkers.map(w => {
             return `
@@ -868,8 +716,8 @@ async function saveAttendance() {
             const worker = allWorkers.find(w => w._id === id);
             if (!worker) return null;
 
-            const newDays = (worker.daysWorked || 0) + 1;
-            const newCost = (worker.dailyWage || 0) * newDays;
+            const newDays = toNumber(worker.daysWorked) + 1;
+            const newCost = toNumber(worker.dailyWage) * newDays;
 
             return window.api.labour.update(id, {
                 projectId: worker.projectId,
