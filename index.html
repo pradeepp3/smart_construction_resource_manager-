@@ -30,7 +30,7 @@
         <!-- Sidebar Navigation -->
         <aside id="sidebar" class="sidebar" style="display:none;">
             <div class="sidebar-brand">
-                <img src="assets/icons/icon.png" alt="Kumaran Infratech logo" class="brand-logo" />
+                <div class="brand-logo">K</div>
                 <div>
                     <div class="brand-name">Kumaran Infratech</div>
                     <div class="brand-tagline">Ops Platform v2.0</div>
@@ -49,10 +49,37 @@
                     <i class="ph ph-briefcase"></i>
                     <span class="nav-label">Projects</span>
                 </button>
-                <button class="nav-item" onclick="navigateTo('labour')" data-view="labour" title="Labour">
+                <button class="nav-item" onclick="navigateTo('labour')" data-view="labour" title="Labour" style="position: relative;">
                     <i class="ph ph-hard-hat"></i>
-                    <span class="nav-label">Labour</span>
+                    <span class="nav-label" style="flex:1; text-align:left;">Labour</span>
+                    <i class="ph ph-caret-down" style="position:absolute; right:1rem; font-size:0.8rem;" onclick="event.stopPropagation(); toggleLabourMenu();" id="labourChevron"></i>
                 </button>
+                <div id="labourSubmenu" class="nav-submenu" style="display:none;">
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Masonry')" data-view="labour-Masonry" title="Masonry">
+                         <i class="ph ph-wall"></i><span class="nav-label">Masonry</span>
+                    </button>
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Centring')" data-view="labour-Centring" title="Centring">
+                         <i class="ph ph-frame-corners"></i><span class="nav-label">Centring</span>
+                    </button>
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Concrete Team')" data-view="labour-Concrete Team" title="Concrete Team">
+                         <i class="ph ph-truck"></i><span class="nav-label">Concrete Team</span>
+                    </button>
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Electrical & plumbing')" data-view="labour-Electrical & plumbing" title="Electrical & plumbing">
+                         <i class="ph ph-lightning"></i><span class="nav-label">Elec & plumbing</span>
+                    </button>
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Tiles')" data-view="labour-Tiles" title="Tiles">
+                         <i class="ph ph-squares-four"></i><span class="nav-label">Tiles</span>
+                    </button>
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Painting')" data-view="labour-Painting" title="Painting">
+                         <i class="ph ph-paint-roller"></i><span class="nav-label">Painting</span>
+                    </button>
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Polish')" data-view="labour-Polish" title="Polish">
+                         <i class="ph ph-sparkle"></i><span class="nav-label">Polish</span>
+                    </button>
+                    <button class="nav-item sub-item" onclick="navigateTo('labour', 'Others')" data-view="labour-Others" title="Others">
+                         <i class="ph ph-users"></i><span class="nav-label">Others</span>
+                    </button>
+                </div>
                 <button class="nav-item" onclick="navigateTo('materials')" data-view="materials" title="Materials">
                     <i class="ph ph-package"></i>
                     <span class="nav-label">Materials</span>
@@ -60,10 +87,6 @@
                 <button class="nav-item" onclick="navigateTo('equipment')" data-view="equipment" title="Equipment">
                     <i class="ph ph-truck"></i>
                     <span class="nav-label">Equipment</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('other-expenses')" data-view="other-expenses" title="Other Expenses">
-                    <i class="ph ph-receipt"></i>
-                    <span class="nav-label">Other Expenses</span>
                 </button>
                 <div class="nav-divider"></div>
                 <div class="section-label" style="padding: 0 .5rem;">Finance</div>
@@ -129,7 +152,6 @@
     </div>
 
     <!-- Scripts -->
-     <script src="js/ai-insights.js"></script>
     <script src="js/app.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/project-manager.js"></script>
@@ -137,7 +159,6 @@
     <script src="js/modules/labour-calculator.js"></script>
     <script src="js/modules/materials.js"></script>
     <script src="js/modules/equipment.js"></script>
-    <script src="js/modules/other-expenses.js"></script>
     <script src="js/modules/finance.js"></script>
     <script src="js/modules/settings.js"></script>
 </body>

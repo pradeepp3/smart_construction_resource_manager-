@@ -60,17 +60,6 @@ A comprehensive desktop application for managing construction projects, built wi
    npm start
    ```
 
-### AI Insights Setup
-
-AI Insights requires a Groq API key at runtime. Set it in your shell before starting the app:
-
-```powershell
-$env:GROQ_API_KEY="your_groq_api_key"
-npm start
-```
-
-If `GROQ_API_KEY` is not set, the rest of the desktop app still works, but AI Insights requests will return a configuration error.
-
 ## Usage
 
 ### First Time Login
