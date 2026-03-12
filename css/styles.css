@@ -295,6 +295,44 @@ body {
     color: var(--brand);
 }
 
+/* Accordion & Submenu */
+.nav-submenu {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: 2rem;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border-left: 1px solid var(--border);
+    padding-left: 0.5rem;
+}
+
+.sub-item {
+    padding: .5rem .8rem;
+    font-size: .8rem;
+    color: var(--text-muted);
+}
+
+.sub-item i {
+    font-size: 1rem;
+}
+
+.sub-item::before {
+    display: none; /* Hide the active left bar for subgroups if desired, or keep it */
+}
+
+.sub-item.active {
+    background: transparent;
+    color: var(--brand-light);
+    border-color: transparent;
+    box-shadow: none;
+}
+.sub-item.active::before {
+    display: block;
+    height: 60%;
+    left: -0.5rem; /* position on the border line */
+}
+
 .nav-divider {
     height: 1px;
     background: var(--border);
@@ -632,7 +670,7 @@ body {
     background: var(--bg-hover);
 }
 
-
+.header-icon-btn {
     width: 36px;
     height: 36px;
     border-radius: var(--r-md);

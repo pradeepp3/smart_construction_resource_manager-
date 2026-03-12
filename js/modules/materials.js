@@ -21,8 +21,8 @@ async function loadMaterialsView() {
         allMaterials = [];
     }
 
-    const totalCost = allMaterials.reduce((sum, m) => sum + toNumber(m.totalCost), 0);
-    const totalQuantity = allMaterials.reduce((sum, m) => sum + toNumber(m.quantity), 0);
+    const totalCost = allMaterials.reduce((sum, m) => sum + (m.totalCost || 0), 0);
+    const totalQuantity = allMaterials.reduce((sum, m) => sum + (m.quantity || 0), 0);
 
     return `
         <div class="materials-container">
@@ -154,7 +154,7 @@ function renderMaterialsTable() {
                 </thead>
                 <tbody>
                     ${allMaterials.map(material => {
-        const isLowStock = toNumber(material.quantity) < 10;
+        const isLowStock = material.quantity < 10;
         return `
                         <tr>
                             <td>
@@ -163,7 +163,7 @@ function renderMaterialsTable() {
                             <td><span class="badge badge-secondary" style="background: var(--bg-hover); color: var(--text-secondary);">${material.category}</span></td>
                             <td>
                                 <div class="flex gap-sm" style="align-items: center;">
-                                    <span class="font-mono" style="font-weight: 600;">${toNumber(material.quantity)} ${material.unit}</span>
+                                    <span class="font-mono" style="font-weight: 600;">${material.quantity} ${material.unit}</span>
                                     ${isLowStock ? '<span class="badge badge-danger" style="font-size: 0.65rem;">Low</span>' : ''}
                                 </div>
                             </td>

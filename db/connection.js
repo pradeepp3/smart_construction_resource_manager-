@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 const path = require('path');
 const fs = require('fs');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 let client = null;
 let db = null;
@@ -21,10 +21,7 @@ async function initDatabase(connectionUrl = null) {
 
         console.log(`Connecting to MongoDB at ${url}...`);
 
-        client = new MongoClient(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        client = new MongoClient(url);
 
         await client.connect();
         db = client.db(DB_NAME);

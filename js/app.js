@@ -6,7 +6,7 @@ const AppState = {
 };
 
 // Router - Navigate between views
-async function navigateTo(viewName) {
+async function navigateTo(viewName, subCategory = null) {
     AppState.currentView = viewName;
 
     const viewContainer = document.getElementById('view-container');
@@ -17,7 +17,10 @@ async function navigateTo(viewName) {
     // Update active nav button
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.view === viewName) {
+        const targetView = btn.dataset.view;
+        if (subCategory && targetView === `${viewName}-${subCategory}`) {
+            btn.classList.add('active');
+        } else if (!subCategory && targetView === viewName) {
             btn.classList.add('active');
         }
     });
@@ -48,6 +51,8 @@ async function navigateTo(viewName) {
                 if (viewName === 'electrician-payments' && AppState.currentElectricianWorker) {
                     document.getElementById('headerProjectName').textContent =
                         `⚡ ${AppState.currentElectricianWorker.name} — Payments`;
+                } else if (viewName === 'labour' && subCategory) {
+                    document.getElementById('headerProjectName').textContent = `${AppState.currentProject.name} — ${subCategory}`;
                 } else {
                     document.getElementById('headerProjectName').textContent = AppState.currentProject.name;
                 }
@@ -67,7 +72,7 @@ async function navigateTo(viewName) {
                 content = await loadDashboardView();
                 break;
             case 'labour':
-                content = await loadLabourView();
+                content = await loadLabourView(subCategory);
                 break;
             case 'electrician-payments':
                 content = await loadElectricianPaymentsView();
@@ -1374,3 +1379,14 @@ window.deleteElectricianPayment = deleteElectricianPayment;
 window.hideSearchDropdown = hideSearchDropdown;
 window.hideNotificationPanel = hideNotificationPanel;
 window.renderNotificationPanel = renderNotificationPanel;
+window.toggleLabourMenu = function() {
+    const submenu = document.getElementById('labourSubmenu');
+    const chevron = document.getElementById('labourChevron');
+    if (submenu.style.display === 'none') {
+        submenu.style.display = 'block';
+        if (chevron) chevron.classList.replace('ph-caret-down', 'ph-caret-up');
+    } else {
+        submenu.style.display = 'none';
+        if (chevron) chevron.classList.replace('ph-caret-up', 'ph-caret-down');
+    }
+};
