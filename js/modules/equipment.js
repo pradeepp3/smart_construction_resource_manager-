@@ -22,7 +22,7 @@ async function loadEquipmentView() {
         allEquipment = [];
     }
 
-    const totalCost = allEquipment.reduce((sum, e) => sum + (e.totalCost || 0), 0);
+    const totalCost = allEquipment.reduce((sum, e) => sum + toNumber(e.totalCost), 0);
     const availableCount = allEquipment.filter(e => e.status === 'Available').length;
     const inUseCount = allEquipment.filter(e => e.status === 'In Use').length;
 
@@ -239,8 +239,8 @@ async function editEquipment(equipmentId) {
     document.getElementById('equipmentCategory').value = equipment.category;
     document.getElementById('equipmentStatus').value = equipment.status;
     document.getElementById('equipmentOwnership').value = equipment.ownership;
-    document.getElementById('equipmentCost').value = equipment.totalCost;
-    document.getElementById('equipmentRentalRate').value = equipment.rentalRate || 0;
+    document.getElementById('equipmentCost').value = toNumber(equipment.totalCost);
+    document.getElementById('equipmentRentalRate').value = toNumber(equipment.rentalRate);
     document.getElementById('equipmentSupplier').value = equipment.supplier || '';
     document.getElementById('equipmentNotes').value = equipment.notes || '';
 

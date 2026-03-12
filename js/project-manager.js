@@ -178,24 +178,6 @@ function renderProjectCards(financialSummaries = {}) {
                         <span>${formatDate(project.startDate)}</span>
                     </div>
                 </div>
-                <div style="margin-top:.75rem; padding-top:.75rem; border-top:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:.5rem;">
-                    <div>
-                        <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted);">Labour</div>
-                        <div style="font-size:0.8rem; font-weight:600; color:var(--brand);">${formatCurrency(summary.labourCost)}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted);">Material</div>
-                        <div style="font-size:0.8rem; font-weight:600; color:var(--blue);">${formatCurrency(summary.materialCost)}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted);">Equipment</div>
-                        <div style="font-size:0.8rem; font-weight:600; color:var(--purple);">${formatCurrency(summary.equipmentCost)}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted);">Other Misc</div>
-                        <div style="font-size:0.8rem; font-weight:600; color:var(--teal);">${formatCurrency(summary.otherExpenses)}</div>
-                    </div>
-                </div>
                 <div style="margin-top:.75rem;">
                     <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-muted);margin-bottom:.3rem;">
                         <span>Budget Used</span><span>${pct.toFixed(0)}%</span>

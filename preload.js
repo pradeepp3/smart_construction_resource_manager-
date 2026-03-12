@@ -47,7 +47,9 @@ contextBridge.exposeInMainWorld('api', {
     finance: {
         getSummary: (projectId) => ipcRenderer.invoke('finance:getSummary', projectId),
         getExpenses: (projectId) => ipcRenderer.invoke('finance:getExpenses', projectId),
-        createExpense: (expenseData) => ipcRenderer.invoke('finance:createExpense', expenseData)
+        createExpense: (expenseData) => ipcRenderer.invoke('finance:createExpense', expenseData),
+        updateExpense: (expenseId, updates) => ipcRenderer.invoke('finance:updateExpense', expenseId, updates),
+        deleteExpense: (expenseId) => ipcRenderer.invoke('finance:deleteExpense', expenseId)
     },
 
     // Electrician Team Management
@@ -66,5 +68,10 @@ contextBridge.exposeInMainWorld('api', {
         updateConfig: (updates) => ipcRenderer.invoke('settings:updateConfig', updates),
         selectDbPath: () => ipcRenderer.invoke('settings:selectDbPath'),
         onDbSwitched: (callback) => ipcRenderer.on('db:switched', (event, data) => callback(data))
+    },
+    // AI Insights (Groq API — called from main process to bypass CSP)
+    ai: {
+        query: (payload) => ipcRenderer.invoke('ai:query', payload)
     }
+
 });
