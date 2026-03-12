@@ -68,5 +68,10 @@ contextBridge.exposeInMainWorld('api', {
         updateConfig: (updates) => ipcRenderer.invoke('settings:updateConfig', updates),
         selectDbPath: () => ipcRenderer.invoke('settings:selectDbPath'),
         onDbSwitched: (callback) => ipcRenderer.on('db:switched', (event, data) => callback(data))
+    },
+    // AI Insights (Groq API — called from main process to bypass CSP)
+    ai: {
+        query: (payload) => ipcRenderer.invoke('ai:query', payload)
     }
+
 });

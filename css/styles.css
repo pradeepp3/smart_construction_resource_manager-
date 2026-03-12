@@ -211,25 +211,9 @@ body {
 .brand-logo {
     width: 38px;
     height: 38px;
-    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-    border-radius: var(--r-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    color: #000;
-    font-family: var(--font-mono);
-    font-size: 1.15rem;
-    box-shadow: 0 4px 14px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-    flex-shrink: 0;
-}
-
-.brand-name {
-    font-size: .9rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -.01em;
-    line-height: 1.2;
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 0 18px rgba(245, 158, 11, .2));
 }
 
 .brand-tagline {
@@ -1809,18 +1793,11 @@ tbody tr:hover td {
 }
 
 .login-brand-mark .big-logo {
-    width: 56px;
-    height: 56px;
-    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-    border-radius: var(--r-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    font-weight: 900;
-    color: #000;
-    font-family: var(--font-mono);
-    box-shadow: 0 0 40px var(--brand-glow);
+    width: 72px;
+    height: 72px;
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 0 24px rgba(245, 158, 11, .25));
     margin-bottom: 1rem;
 }
 

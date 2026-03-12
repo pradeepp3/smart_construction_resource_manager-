@@ -5,6 +5,67 @@ const fs = require('fs');
 const { initDatabase, closeDatabase } = require('./db/connection');
 const dbOperations = require('./db/operations');
 const { loadBootstrapConfig, saveBootstrapConfig } = require('./db/file-config');
+const https = require('https');
+
+
+ipcMain.handle('ai:query', async (event, { systemPrompt, userPrompt }) => {
+  const groqApiKey = process.env.GROQ_API_KEY?.trim();
+  if (!groqApiKey) {
+    return {
+      success: false,
+      message: 'Set GROQ_API_KEY in the environment to enable AI Insights.'
+    };
+  }
+
+  const body = JSON.stringify({
+    model: 'llama-3.1-8b-instant',
+    max_tokens: 1024,
+    temperature: 0.2,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: userPrompt   }
+    ]
+  });
+
+  return new Promise((resolve) => {
+    const options = {
+      hostname: 'api.groq.com',
+      path:     '/openai/v1/chat/completions',
+      method:   'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.error) {
+            resolve({ success: false, message: json.error.message || 'Groq API error' });
+          } else {
+            const text = json.choices?.[0]?.message?.content || '';
+            resolve({ success: true, data: text });
+          }
+        } catch (e) {
+          resolve({ success: false, message: 'Failed to parse Groq response' });
+        }
+      });
+    });
+
+    req.on('error', (e) => {
+      resolve({ success: false, message: e.message });
+    });
+
+    req.write(body);
+    req.end();
+  });
+});
+
 
 let mainWindow;
 let currentUser = null;

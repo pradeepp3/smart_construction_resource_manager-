@@ -48,7 +48,7 @@ function loadLoginView() {
                 <div class="login-grid-lines"></div>
 
                 <div class="login-brand-mark">
-                    <div class="big-logo">K</div>
+                    <img src="assets/icons/icon.png" alt="Kumaran Infratech logo" class="big-logo" />
                     <h1>Kumaran Infratech</h1>
                     <p>Construction Operations Platform — Enterprise Edition</p>
                 </div>
